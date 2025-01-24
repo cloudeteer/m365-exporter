@@ -1,0 +1,29 @@
+name: ❓ Question
+description: Something is not clear.
+labels: [ ❓ question ]
+body:
+  - type: textarea
+    attributes:
+      label: Problem Statement
+      description: Without specifying a solution, describe what the project is missing today.
+      placeholder: |
+        The rotating project logo has a fixed size and color.
+        There is no way to make it larger and more shiny.
+    validations:
+      required: false
+
+  - type: checkboxes
+    attributes:
+      label: Privacy Statement
+      description: "I acknowledge that this is a public repository and confirm that I have not included any sensitive customer data, internal information, or proprietary details in this request."
+      options:
+        - label: I agree
+          required: true
+
+  - type: checkboxes
+    attributes:
+      label: Code of Conduct
+      description: "By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/cloudeteer/terraform-governance?tab=coc-ov-file#code-of-conduct)."
+      options:
+        - label: I agree to follow this repository's Code of Conduct
+          required: true

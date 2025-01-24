@@ -1,0 +1,13 @@
+server:
+  host:
+  port:
+settings:
+  loglevel:
+  serviceHealthStatusRefreshRate:
+  serviceHealthIssueKeepDays:
+oneDrive:
+  enabled: true
+  scrambleNames: true
+  scrambleSalt:
+teams:
+  enabled: true

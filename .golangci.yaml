@@ -1,0 +1,56 @@
+linters:
+  enable-all: true
+  disable:
+    - depguard
+    - err113
+    - exhaustruct
+    - funlen
+    - gochecknoglobals
+    - godot
+    - ireturn
+    - mnd
+    - exportloopref
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - lll
+        - gocognit
+        - cyclop
+        - wrapcheck
+        - maintidx
+        - dogsled
+        - contextcheck
+        - dupword
+        - dupl
+        - funlen
+
+linters-settings:
+  varnamelen:
+    ignore-names:
+      - tt
+    ignore-decls:
+      - i int
+      - a ...any
+      - err error
+      - ok bool
+      - c *Collector
+      - ch chan<- prometheus.Metric
+  lll:
+    line-length: 160
+  sloglint:
+    no-mixed-args: true
+    kv-only: false
+    attr-only: true
+    no-global: "all"
+    context: "scope"
+    static-msg: false
+    no-raw-keys: false
+    key-naming-case: snake
+    forbidden-keys:
+      - time
+      - level
+      - msg
+      - source
+    args-on-sep-lines: true

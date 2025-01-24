@@ -1,0 +1,70 @@
+version: 2
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    tags:
+      - static_build
+    mod_timestamp: '{{ .CommitTimestamp }}'
+    main: ./cmd/m365-exporter/
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    flags:
+      - -trimpath
+    ldflags:
+      - >-
+        -s -w
+        -X github.com/prometheus/common/version.Version={{.Version}}
+        -X github.com/prometheus/common/version.Revision={{.FullCommit}}
+        -X github.com/prometheus/common/version.Branch={{.Branch}}
+        -X github.com/prometheus/common/version.BuildDate={{.Date}}
+
+kos:
+  - repository: ghcr.io/cloudeteer/m365-exporter
+    tags:
+      - "{{ if .IsSnapshot }}main{{ else }}{{.Version}}{{ end }}"
+      - "{{ if not .IsSnapshot }}latest{{ end }}"
+    bare: true
+    base_image: gcr.io/distroless/static-debian12:nonroot # scratch is not supported, see https://github.com/ko-build/ko/pull/1350
+    preserve_import_paths: false
+    creation_time: "{{.CommitTimestamp}}"
+    ko_data_creation_time: "{{.CommitTimestamp}}"
+    platforms:
+      - linux/amd64
+      - linux/arm64
+    labels:
+      org.opencontainers.image.created: "{{.Date}}"
+      org.opencontainers.image.title: "{{.ProjectName}}"
+      org.opencontainers.image.revision: "{{.FullCommit}}"
+      org.opencontainers.image.version: "{{ if .IsSnapshot }}main{{ else }}{{ .Version }}{{ end }}"
+      org.opencontainers.image.source: "https://github.com/cloudeteer/m365-exporter"
+      org.opencontainers.image.description: "A Microsoft 365 exporter for Prometheus metrics"
+
+docker_signs:
+  - artifacts: manifests
+    output: true
+    cmd: cosign
+    env:
+      - COSIGN_EXPERIMENTAL=1
+    args:
+      - sign
+      - '--oidc-issuer={{if index .Env "CI"}}https://token.actions.githubusercontent.com{{else}}https://oauth2.sigstore.dev/auth{{end}}'
+      - '--yes'
+      - '${artifact}'
+
+report_sizes: true
+
+metadata:
+  mod_timestamp: "{{ .CommitTimestamp }}"
+
+release:
+  prerelease: auto
+  skip_upload: true
+
+changelog:
+  use: github-native
