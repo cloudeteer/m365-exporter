@@ -44,7 +44,7 @@ jobs:
 
       - run: go test ./... -timeout 20s -race -covermode=atomic -coverprofile=coverage.out -coverpkg=./...
         env:
-          AZURE_TENANT_ID: "${{ vars.ORGA_CDT_TENANT_ID }}"
+          AZURE_TENANT_ID: "${{ vars.AZURE_TENANT_ID }}"
           AZURE_CLIENT_ID: "${{ vars.AZURE_CLIENT_ID }}"
           AZURE_FEDERATED_TOKEN_FILE: "${{ format('{0}/.az-token', runner.temp) }}"
 
