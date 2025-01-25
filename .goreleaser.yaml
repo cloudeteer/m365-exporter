@@ -37,14 +37,18 @@ kos:
     platforms:
       - linux/amd64
       - linux/arm64
-    labels:
+    annotations:
+      # https://github.com/opencontainers/image-spec/blob/main/annotations.md
       org.opencontainers.image.created: "{{.Date}}"
       org.opencontainers.image.title: "{{.ProjectName}}"
       org.opencontainers.image.revision: "{{.FullCommit}}"
       org.opencontainers.image.version: "{{ if .IsSnapshot }}main{{ else }}{{ .Version }}{{ end }}"
       org.opencontainers.image.source: "https://github.com/cloudeteer/m365-exporter"
+      org.opencontainers.image.vendor: "Cloudeteer GmbH"
+      org.opencontainers.image.licenses: "MIT"
       org.opencontainers.image.description: "A Microsoft 365 exporter for Prometheus metrics"
-
+    label:
+      org.opencontainers.image.source: "https://github.com/cloudeteer/m365-exporter"
 docker_signs:
   - artifacts: manifests
     output: true
