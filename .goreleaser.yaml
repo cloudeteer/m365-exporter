@@ -47,7 +47,7 @@ kos:
       org.opencontainers.image.vendor: "Cloudeteer GmbH"
       org.opencontainers.image.licenses: "MIT"
       org.opencontainers.image.description: "A Microsoft 365 exporter for Prometheus metrics"
-    label:
+    labels:
       org.opencontainers.image.source: "https://github.com/cloudeteer/m365-exporter"
 docker_signs:
   - artifacts: manifests
