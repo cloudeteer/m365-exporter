@@ -47,7 +47,7 @@ jobs:
           AZURE_TENANT_ID: "${{ vars.AZURE_TENANT_ID }}"
           AZURE_CLIENT_ID: "${{ vars.AZURE_CLIENT_ID }}"
           AZURE_FEDERATED_TOKEN_FILE: "${{ format('{0}/.az-token', runner.temp) }}"
- 
+
       - name: Upload coverage reports to Codecov
         if: always()
         uses: codecov/codecov-action@v5
