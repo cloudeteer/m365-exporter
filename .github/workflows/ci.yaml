@@ -47,6 +47,10 @@ jobs:
           AZURE_TENANT_ID: "${{ vars.AZURE_TENANT_ID }}"
           AZURE_CLIENT_ID: "${{ vars.AZURE_CLIENT_ID }}"
           AZURE_FEDERATED_TOKEN_FILE: "${{ format('{0}/.az-token', runner.temp) }}"
+ 
+      - name: Upload coverage reports to Codecov
+        if: always()
+        uses: codecov/codecov-action@v5
 
       - name: Login to GitHub Container Registry
         if: github.ref == 'refs/heads/main'
@@ -64,12 +68,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.ref == 'refs/heads/main' && secrets.GITHUB_TOKEN || '' }}
           GORELEASER_CURRENT_TAG: ${{ github.ref == 'refs/heads/main' && github.ref_name || '' }}
-
-      - name: Archive code coverage results
-        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
-        with:
-          name: code-coverage
-          path: coverage.txt
 
   lint:
     name: golangci-lint
