@@ -25,7 +25,8 @@ builds:
         -X github.com/prometheus/common/version.BuildDate={{.Date}}
 
 kos:
-  - repository: ghcr.io/cloudeteer/m365-exporter
+  - repositories: 
+      - ghcr.io/cloudeteer/m365-exporter
     tags:
       - "{{ if .IsSnapshot }}main{{ else }}{{.Version}}{{ end }}"
       - "{{ if not .IsSnapshot }}latest{{ end }}"
