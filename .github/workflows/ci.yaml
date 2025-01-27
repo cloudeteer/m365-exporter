@@ -1,11 +1,5 @@
 name: CI
 
-env:
-  # renovate: github=golangci/golangci-lint
-  GO_LINT_CI_VERSION: v1.63.4
-  # renovate: github=goreleaser/goreleaser
-  GORELEASER_VERSION: v2.5.1
-
 on:
   pull_request:
   push:
@@ -32,6 +26,8 @@ jobs:
           go-version-file: 'go.mod'
           cache: true
 
+      - run: go mod tidy -diff
+
       - run: go build -o m365-exporter ./cmd/m365-exporter
 
       - name: Fetch OIDC token from GH actions API
@@ -48,6 +44,10 @@ jobs:
           AZURE_CLIENT_ID: "${{ vars.AZURE_CLIENT_ID }}"
           AZURE_FEDERATED_TOKEN_FILE: "${{ format('{0}/.az-token', runner.temp) }}"
 
+      - name: Upload coverage reports to Codecov
+        if: always()
+        uses: codecov/codecov-action@v5
+
       - name: Login to GitHub Container Registry
         if: github.ref == 'refs/heads/main'
         uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
@@ -59,17 +59,12 @@ jobs:
       - name: go build (with goreleaser)
         uses: goreleaser/goreleaser-action@9ed2f89a662bf1735a48bc8557fd212fa902bebf # v6.1.0
         with:
-          version: ${{ env.GORELEASER_VERSION }}
+          # renovate: github=goreleaser/goreleaser
+          version: v2.5.1
           args: release --clean --timeout=3600s ${{ github.ref == 'refs/heads/main' && '--auto-snapshot --skip announce' || '--snapshot' }}
         env:
           GITHUB_TOKEN: ${{ github.ref == 'refs/heads/main' && secrets.GITHUB_TOKEN || '' }}
           GORELEASER_CURRENT_TAG: ${{ github.ref == 'refs/heads/main' && github.ref_name || '' }}
-
-      - name: Archive code coverage results
-        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
-        with:
-          name: code-coverage
-          path: coverage.txt
 
   lint:
     name: golangci-lint
@@ -103,13 +98,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MULTI_STATUS: false
-          VALIDATE_ALL_CODEBASE: false
+          VALIDATE_ALL_CODEBASE: true
           VALIDATE_BASH: true
           VALIDATE_BASH_EXEC: true
           VALIDATE_EDITORCONFIG: true
           VALIDATE_ENV: true
           VALIDATE_GITHUB_ACTIONS: true
           VALIDATE_GITLEAKS: true
+          #VALIDATE_GO_RELEASER: true
           VALIDATE_JSON: true
           VALIDATE_NATURAL_LANGUAGE: true
           VALIDATE_PYTHON: true
