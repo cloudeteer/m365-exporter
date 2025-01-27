@@ -5,6 +5,9 @@
     "helpers:pinGitHubActionDigestsToSemver"
   ],
   "dependencyDashboardApproval": true,
+  "labels": [
+    "🛠️ dependencies"
+  ],
   "packageRules": [
     {
       "groupName": "GitHub Actions",
