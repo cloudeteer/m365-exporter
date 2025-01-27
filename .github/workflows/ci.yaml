@@ -61,10 +61,9 @@ jobs:
         with:
           # renovate: github=goreleaser/goreleaser
           version: v2.5.1
-          args: release --clean --timeout=3600s ${{ github.ref == 'refs/heads/main' && '--auto-snapshot --skip announce' || '--snapshot' }}
+          args: release --snapshot
         env:
-          GITHUB_TOKEN: ${{ github.ref == 'refs/heads/main' && secrets.GITHUB_TOKEN || '' }}
-          GORELEASER_CURRENT_TAG: ${{ github.ref == 'refs/heads/main' && github.ref_name || '' }}
+          GITHUB_TOKEN: ''
 
   lint:
     name: golangci-lint
