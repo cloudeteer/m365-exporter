@@ -28,3 +28,8 @@
 # dont commit local config for testing
 m365-exporter-config.yaml
 !/docs/m365-exporter-config.yaml
+
+coverage.out
+codecov
+codecov*
+/m365-exporter
