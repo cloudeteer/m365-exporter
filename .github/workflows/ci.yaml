@@ -66,6 +66,22 @@ jobs:
           GITHUB_TOKEN: ${{ github.ref == 'refs/heads/main' && secrets.GITHUB_TOKEN || '' }}
           GORELEASER_CURRENT_TAG: ${{ github.ref == 'refs/heads/main' && github.ref_name || '' }}
 
+  lint:
+    name: golangci-lint
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
+        with:
+          go-version-file: 'go.mod'
+
+      - run: go mod tidy -diff
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@ec5d18412c0aeab7936cb16880d708ba2a64e1ae # v6.2.0
+        with:
+          args: --timeout=600s --tests=false
+
   super-lint:
     name: super-lint
     runs-on: ubuntu-24.04
@@ -89,7 +105,6 @@ jobs:
           VALIDATE_ENV: true
           VALIDATE_GITHUB_ACTIONS: true
           VALIDATE_GITLEAKS: true
-          VALIDATE_GO_MODULES: true
           VALIDATE_GO_RELEASER: true
           VALIDATE_JSON: true
           VALIDATE_NATURAL_LANGUAGE: true
