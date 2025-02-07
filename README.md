@@ -28,6 +28,7 @@ The following collectors are implemented:
 | Name                                             | Description             |
 |--------------------------------------------------|-------------------------|
 | [adsync](docs/collector.adsync.md)               | Entra ID Connect Health |
+| [exchange](docs/collector.exchange.md)               | Exchange Online metrics          |
 | [intune](docs/collector.intune.md)               | Intune devices          |
 | [license](docs/collector.license.md)             | Licenses usage          |
 | [onedrive](docs/collector.license.md)            | Onedrive usage          |
