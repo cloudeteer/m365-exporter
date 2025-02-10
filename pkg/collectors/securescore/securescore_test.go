@@ -25,7 +25,7 @@ func TestCollector_ScrapeMetrics(t *testing.T) {
 	)
 
 	if tenantID, ok = os.LookupEnv("AZURE_TENANT_ID"); !ok {
-		t.Skipf("no AZURE_TENANT_ID environment variable set")
+		t.Skip("no AZURE_TENANT_ID environment variable set")
 	}
 
 	// TODO: Go 1.24: Change to slog.NewDiscardHandler
