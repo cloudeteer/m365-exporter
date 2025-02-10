@@ -84,6 +84,7 @@ func (c *Collector) ScrapeMetrics(ctx context.Context) ([]prometheus.Metric, err
 	return metrics, errors.Join(errs...)
 }
 
+//nolint:cyclop
 func (c *Collector) scrapeMailflowMetrics(ctx context.Context) ([]prometheus.Metric, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.httpExchangeAdminBaseURL,
 		strings.NewReader(`{"CmdletInput": {"CmdletName": "Get-MailFlowStatusReport"}}`),
