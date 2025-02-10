@@ -96,6 +96,7 @@ func (c *HTTPClient) WithAzureCredential(cred azcore.TokenCredential) {
 
 			req.Header.Set("Authorization", "Bearer "+token.Token)
 		}
+
 		return transport.RoundTrip(req)
 	})
 }

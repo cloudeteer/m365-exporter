@@ -8,9 +8,9 @@ None
 
 ## Metrics
 
-| Name                              | Description                                | Type  | Labels                                            |
-|-----------------------------------|--------------------------------------------|-------|---------------------------------------------------|
-| `m365_exchange_mailflow_messages` | status of azure ad connect synchronization | Gauge | `tenant`, `organization`,`direction`,`event_type` |
+| Name                              | Description                         | Type  | Labels                                            |
+|-----------------------------------|-------------------------------------|-------|---------------------------------------------------|
+| `m365_exchange_mailflow_messages` | Number of messages in the mail flow | Gauge | `tenant`, `organization`,`direction`,`event_type` |
 
 ## Example metric
 

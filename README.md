@@ -54,7 +54,7 @@ Tags:
 
 ### MS Graph Permissions
 
-The exporter requires the following permissions to be set in the Azure AD app registration as Application permissions:
+The exporter requires the following permissions to be set in the Entra ID app registration as Application permissions:
 
 - DeviceManagementConfiguration.Read.All
 - DeviceManagementManagedDevices.Read.All
@@ -68,6 +68,16 @@ The exporter requires the following permissions to be set in the Azure AD app re
 - User.Read.All
 
 Keep in mind, after granting the permissions, the administrator must consent to them.
+
+### Exchange API Permissions
+
+The exporter requires the following permissions to be set in the Entra ID app registration as Application permissions for the `Office 365 Exchange Online` App:
+
+* Exchange.ManageAsApp
+
+Also, the directory role `Secruity Reader` or `Global Reader` must be granted.
+
+Ref: https://learn.microsoft.com/en-us/powershell/exchange/connect-exo-powershell-managed-identity?view=exchange-ps
 
 ### Entra ID Connect Health
 

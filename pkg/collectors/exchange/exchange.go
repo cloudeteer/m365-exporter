@@ -18,7 +18,7 @@ import (
 const subsystem = "exchange"
 
 const (
-	exchangeOnlineAdminApi = "https://outlook.office365.com/adminapi/beta/%s/InvokeCommand"
+	exchangeOnlineAdminAPI = "https://outlook.office365.com/adminapi/beta/%s/InvokeCommand"
 )
 
 // Interface guard.
@@ -51,7 +51,7 @@ func NewCollector(logger *slog.Logger, tenant string, httpClient *http.Client) *
 				"tenant": tenant,
 			},
 		),
-		httpExchangeAdminBaseURL: fmt.Sprintf(exchangeOnlineAdminApi, tenant),
+		httpExchangeAdminBaseURL: fmt.Sprintf(exchangeOnlineAdminAPI, tenant),
 		httpClient:               httpClient,
 	}
 }
@@ -85,7 +85,9 @@ func (c *Collector) ScrapeMetrics(ctx context.Context) ([]prometheus.Metric, err
 }
 
 func (c *Collector) scrapeMailflowMetrics(ctx context.Context) ([]prometheus.Metric, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.httpExchangeAdminBaseURL, strings.NewReader(`{"CmdletInput": {"CmdletName": "Get-MailFlowStatusReport"}}`))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.httpExchangeAdminBaseURL,
+		strings.NewReader(`{"CmdletInput": {"CmdletName": "Get-MailFlowStatusReport"}}`),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -97,11 +99,11 @@ func (c *Collector) scrapeMailflowMetrics(ctx context.Context) ([]prometheus.Met
 		return nil, fmt.Errorf("failed to execute request: %w", err)
 	}
 
-	defer func(Body io.ReadCloser) {
-		if err := Body.Close(); err != nil {
-			c.logger.WarnContext(ctx, "error closing response body", slog.Any("err", err))
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			c.logger.Error("error closing response body", slog.Any("err", err))
 		}
-	}(resp.Body)
+	}()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
