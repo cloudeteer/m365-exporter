@@ -1,7 +1,8 @@
-package adsync_test
+package exchange_test
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -10,7 +11,7 @@ import (
 
 	"github.com/cloudeteer/m365-exporter/internal/testutil"
 	"github.com/cloudeteer/m365-exporter/pkg/auth"
-	"github.com/cloudeteer/m365-exporter/pkg/collectors/adsync"
+	"github.com/cloudeteer/m365-exporter/pkg/collectors/exchange"
 	"github.com/cloudeteer/m365-exporter/pkg/httpclient"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
@@ -33,13 +34,13 @@ func TestCollector_ScrapeMetrics(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 
 	// TODO: make this a singleton for all tests
-	msGraphClient, azureCredential, err := auth.NewMSGraphClient(http.DefaultClient)
+	_, azureCredential, err := auth.NewMSGraphClient(http.DefaultClient)
 	require.NoError(t, err)
 
 	httpClient := httpclient.New(prometheus.NewRegistry())
 	httpClient.WithAzureCredential(azureCredential)
 
-	collector := adsync.NewCollector(logger, tenantID, msGraphClient, httpClient.GetHTTPClient())
+	collector := exchange.NewCollector(logger, tenantID, httpClient.GetHTTPClient())
 
 	// TODO: Go 1.24: Change to t.Context()
 	metrics, err := collector.ScrapeMetrics(context.TODO())
@@ -51,6 +52,5 @@ func TestCollector_ScrapeMetrics(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, allMetrics)
-	assert.Contains(t, allMetrics, "m365_adsync_on_premises_last_sync_date_time")
-	assert.Contains(t, allMetrics, "m365_adsync_on_premises_sync_enabled")
+	assert.Regexp(t, fmt.Sprintf(`m365_exchange_mailflow_messages{.+,tenant="%s"} [0-9.e+-]`, tenantID), allMetrics)
 }

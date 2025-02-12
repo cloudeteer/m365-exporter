@@ -85,9 +85,10 @@ func New(reg *prometheus.Registry) HTTPClient {
 func (c *HTTPClient) WithAzureCredential(cred azcore.TokenCredential) {
 	transport := c.client.Transport
 	c.client.Transport = roundTripperFunc(func(req *http.Request) (*http.Response, error) {
-		if req.Host == "management.azure.com" {
+		switch req.Host {
+		case "management.azure.com", "outlook.office365.com":
 			token, err := cred.GetToken(req.Context(), policy.TokenRequestOptions{
-				Scopes: []string{"https://management.azure.com/.default"},
+				Scopes: []string{fmt.Sprintf("https://%s/.default", req.Host)},
 			})
 			if err != nil {
 				return nil, fmt.Errorf("getting token: %w", err)
