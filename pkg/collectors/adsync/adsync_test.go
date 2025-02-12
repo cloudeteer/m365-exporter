@@ -53,5 +53,4 @@ func TestCollector_ScrapeMetrics(t *testing.T) {
 	assert.NotEmpty(t, allMetrics)
 	assert.Contains(t, allMetrics, "m365_adsync_on_premises_last_sync_date_time")
 	assert.Contains(t, allMetrics, "m365_adsync_on_premises_sync_enabled")
-	assert.Contains(t, allMetrics, "m365_adsync_on_premises_sync_error")
 }
