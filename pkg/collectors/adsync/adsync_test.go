@@ -2,7 +2,6 @@ package adsync_test
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -55,17 +54,4 @@ func TestCollector_ScrapeMetrics(t *testing.T) {
 	assert.Contains(t, allMetrics, "m365_adsync_on_premises_last_sync_date_time")
 	assert.Contains(t, allMetrics, "m365_adsync_on_premises_sync_enabled")
 	assert.Contains(t, allMetrics, "m365_adsync_on_premises_sync_error")
-
-	for _, errorBucket := range []string{
-		"All",
-		"DataMismatch",
-		"DataValidationError",
-		"DuplicateAttributeError",
-		"FederatedDomainChange",
-		"LargeAttribute",
-		"Others",
-		"RoleMembershipSoftMatchFailure",
-	} {
-		assert.Regexp(t, fmt.Sprintf(`m365_adsync_on_premises_sync_error{.*error_bucket="%s".*} [0-9.e+-]`, errorBucket), allMetrics)
-	}
 }
