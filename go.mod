@@ -9,6 +9,7 @@ require (
 	github.com/microsoftgraph/msgraph-sdk-go v1.61.0
 	github.com/microsoftgraph/msgraph-sdk-go-core v1.2.1
 	github.com/prometheus/client_golang v1.21.0
+	github.com/spf13/cast v1.7.0
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.10.0
 )
@@ -47,7 +48,6 @@ require (
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
-	github.com/spf13/cast v1.7.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/std-uritemplate/std-uritemplate/go/v2 v2.0.1 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
