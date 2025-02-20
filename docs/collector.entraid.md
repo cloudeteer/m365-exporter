@@ -1,6 +1,6 @@
 # entraid collector
 
-The entraid collector collects information about entra id users.
+The entraid collector collects information about entra ID users.
 
 ## Configuration
 
