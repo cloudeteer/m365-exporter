@@ -7,5 +7,4 @@ ignore:
   - "docs/**/*"
   - "tests/**/*"
   - "internal/testutil/*"
-  - "pkg/**/*"
   - "wiki/**/*"
