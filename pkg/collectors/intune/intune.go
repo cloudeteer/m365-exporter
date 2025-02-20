@@ -121,6 +121,7 @@ func (c *Collector) scrapeCompliance(ctx context.Context) ([]prometheus.Metric, 
 			label,
 		))
 	}
+
 	return metrics, nil
 }
 
@@ -129,6 +130,7 @@ func (c *Collector) scrapeDevices(ctx context.Context) ([]prometheus.Metric, err
 	if err != nil {
 		return nil, fmt.Errorf("failed to get managed device overview: %w", util.GetOdataError(err))
 	}
+
 	dIterator, err := graphcore.NewPageIterator[*models.ManagedDevice](
 		all,
 		c.GraphClient().GetAdapter(),
@@ -137,6 +139,7 @@ func (c *Collector) scrapeDevices(ctx context.Context) ([]prometheus.Metric, err
 	if err != nil {
 		return nil, fmt.Errorf("failed to create device iterator: %w", util.GetOdataError(err))
 	}
+
 	metrics, err := c.iterateThroughDevices(ctx, dIterator)
 	if err != nil {
 		return nil, err
@@ -170,7 +173,6 @@ func (c *Collector) iterateThroughDevices(ctx context.Context, dIterator *graphc
 
 		return true
 	})
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to iterate through devices: %w", util.GetOdataError(err))
 	}
