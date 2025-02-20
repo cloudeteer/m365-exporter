@@ -14,6 +14,7 @@ import (
 	"github.com/cloudeteer/m365-exporter/pkg/auth"
 	"github.com/cloudeteer/m365-exporter/pkg/collectors/abstract"
 	"github.com/cloudeteer/m365-exporter/pkg/collectors/adsync"
+	"github.com/cloudeteer/m365-exporter/pkg/collectors/entraid"
 	"github.com/cloudeteer/m365-exporter/pkg/collectors/exchange"
 	"github.com/cloudeteer/m365-exporter/pkg/collectors/intune"
 	"github.com/cloudeteer/m365-exporter/pkg/collectors/license"
@@ -206,6 +207,11 @@ func setupMetricsCollectors(
 
 		{
 			collector: teams.NewCollector(logger, tenantID, msGraphClient),
+			interval:  3 * time.Hour,
+		},
+
+		{
+			collector: entraid.NewCollector(logger, tenantID, msGraphClient),
 			interval:  3 * time.Hour,
 		},
 	} {
