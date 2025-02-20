@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/cloudeteer/m365-exporter/internal/testutil"
 	"github.com/cloudeteer/m365-exporter/pkg/auth"
@@ -34,16 +33,13 @@ func TestCollector_ScrapeMetrics(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 
 	// TODO: make this a singleton for all tests
-	msGraphClient, azureCredential, err := auth.NewMSGraphClient(http.DefaultClient)
+	msGraphClient2, azureCredential2, err := auth.NewMSGraphClient(http.DefaultClient)
 	require.NoError(t, err)
 
 	httpClient := httpclient.New(prometheus.NewRegistry())
-	httpClient.WithAzureCredential(azureCredential)
+	httpClient.WithAzureCredential(azureCredential2)
 
-	collector := entraid.NewCollector(logger, tenantID, msGraphClient)
-
-	// needed as both tests are running in parallel
-	time.Sleep(5 * time.Second)
+	collector := entraid.NewCollector(logger, tenantID, msGraphClient2)
 
 	// TODO: Go 1.24: Change to t.Context()
 	metrics, err := collector.ScrapeMetrics(context.Background())
