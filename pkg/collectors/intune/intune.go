@@ -165,11 +165,8 @@ func (c *Collector) iterateThroughDevices(ctx context.Context, dIterator *graphc
 
 		osIdentifier := *osName + osIdentifierSeparator + *osVersion
 
-		if _, ok := osIdentifiers[osIdentifier]; ok {
-			osIdentifiers[osIdentifier]++
-		} else {
-			osIdentifiers[osIdentifier] = 1
-		}
+		// map keys are created on the fly
+		osIdentifiers[osIdentifier]++
 
 		return true
 	})

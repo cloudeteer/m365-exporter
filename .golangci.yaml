@@ -9,7 +9,6 @@ linters:
     - godot
     - ireturn
     - mnd
-    - exportloopref
     - tagliatelle
 
 issues:
