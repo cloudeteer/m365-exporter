@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/cloudeteer/m365-exporter/internal/testutil"
 	"github.com/cloudeteer/m365-exporter/pkg/auth"
@@ -40,6 +41,9 @@ func TestCollector_ScrapeMetrics(t *testing.T) {
 	httpClient.WithAzureCredential(azureCredential)
 
 	collector := entraid.NewCollector(logger, tenantID, msGraphClient)
+
+	// needed as both tests are running in parallel
+	time.Sleep(5 * time.Second)
 
 	// TODO: Go 1.24: Change to t.Context()
 	metrics, err := collector.ScrapeMetrics(context.Background())

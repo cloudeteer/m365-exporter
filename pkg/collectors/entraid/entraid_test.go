@@ -41,7 +41,7 @@ func TestCollector_scrapeUsers(t *testing.T) {
 	collector := NewCollector(logger, tenantID, msGraphClient)
 
 	// TODO: Go 1.24: Change to t.Context()
-	metrics, err := collector.scrapeUsers(context.Background(), true, "Guest")
+	metrics, err := collector.scrapeUsers(context.Background(), true, "Member")
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, metrics)
