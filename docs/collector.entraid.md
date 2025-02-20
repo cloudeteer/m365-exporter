@@ -8,9 +8,9 @@ None
 
 ## Metrics
 
-| Name                                          | Description                              | Type  | Labels                      |
-|-----------------------------------------------|------------------------------------------|-------|-----------------------------|
-| `m365_entraid_user_count`        | Amount of users with specific attributes | Gauge | `tenant`, `type`, `enabled` |
+| Name                           | Description                              | Type  | Labels                      |
+|--------------------------------|------------------------------------------|-------|-----------------------------|
+| `m365_entraid_user_count`      | Amount of users with specific attributes | Gauge | `tenant`, `type`, `enabled` |
 
 ## Example metric
 
