@@ -33,13 +33,13 @@ func TestCollector_ScrapeMetrics(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 
 	// TODO: make this a singleton for all tests
-	msGraphClient2, azureCredential2, err := auth.NewMSGraphClient(http.DefaultClient)
+	msGraphClient, azureCredential, err := auth.NewMSGraphClient(http.DefaultClient)
 	require.NoError(t, err)
 
 	httpClient := httpclient.New(prometheus.NewRegistry())
-	httpClient.WithAzureCredential(azureCredential2)
+	httpClient.WithAzureCredential(azureCredential)
 
-	collector := entraid.NewCollector(logger, tenantID, msGraphClient2)
+	collector := entraid.NewCollector(logger, tenantID, msGraphClient)
 
 	// TODO: Go 1.24: Change to t.Context()
 	metrics, err := collector.ScrapeMetrics(context.Background())
