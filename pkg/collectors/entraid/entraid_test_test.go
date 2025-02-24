@@ -18,8 +18,6 @@ import (
 )
 
 func TestCollector_ScrapeMetrics(t *testing.T) {
-	t.Parallel()
-
 	var (
 		ok       bool
 		tenantID string

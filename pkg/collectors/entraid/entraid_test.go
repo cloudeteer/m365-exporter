@@ -17,8 +17,6 @@ import (
 )
 
 func TestCollector_scrapeUsers(t *testing.T) {
-	t.Parallel()
-
 	var (
 		ok       bool
 		tenantID string
