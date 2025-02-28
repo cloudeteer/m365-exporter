@@ -1,9 +1,17 @@
-[![CI](https://github.com/cloudeteer/m365-exporter/workflows/CI/badge.svg)](https://github.com/cloudeteer/m365-exporter/actions?query=workflow%3ACI)
-[![GitHub license](https://img.shields.io/github/license/cloudeteer/m365-exporter)](https://github.com/cloudeteer/m365-exporter/blob/master/LICENSE.txt)
-[![Current Release](https://img.shields.io/github/release/cloudeteer/m365-exporter.svg?logo=github)](https://github.com/cloudeteer/m365-exporter/releases/latest)
-[![GitHub Repo stars](https://img.shields.io/github/stars/cloudeteer/m365-exporter?style=flat&logo=github)](https://github.com/cloudeteer/m365-exporter/stargazers)
-[![GitHub all releases](https://img.shields.io/github/downloads/cloudeteer/m365-exporter/total?logo=github)](https://github.com/cloudeteer/m365-exporter/releases/latest)
-[![Go Report Card](https://goreportcard.com/badge/github.com/cloudeteer/m365-exporter)](https://goreportcard.com/report/github.com/cloudeteer/m365-exporter)
+<p align="center">
+    <img src="docs/sources/assets/logo_m365_exporter.svg" alt="m365-exporter logo" height="120px">
+</p>
+
+
+<p align="center">
+    <a href="https://github.com/cloudeteer/m365-exporter/actions?query=workflow%3ACI"><img src="https://github.com/cloudeteer/m365-exporter/workflows/CI/badge.svg" alt="CI"></a>
+    <a href="https://github.com/cloudeteer/m365-exporter/blob/master/LICENSE.txt"><img src="https://img.shields.io/github/license/cloudeteer/m365-exporter" alt="GitHub license"></a>
+    <a href="https://github.com/cloudeteer/m365-exporter/releases/latest"><img src="https://img.shields.io/github/release/cloudeteer/m365-exporter.svg?logo=github" alt="Current Release"></a>
+    <a href="https://github.com/cloudeteer/m365-exporter/stargazers"><img src="https://img.shields.io/github/stars/cloudeteer/m365-exporter?style=flat&logo=github" alt="GitHub Repo stars"></a>
+    <a href="https://github.com/cloudeteer/m365-exporter/releases/latest"><img src="https://img.shields.io/github/downloads/cloudeteer/m365-exporter/total?logo=github" alt="GitHub all releases"></a>
+    <a href="https://goreportcard.com/report/github.com/cloudeteer/m365-exporter"><img src="https://goreportcard.com/badge/github.com/cloudeteer/m365-exporter" alt="Go Report Card"></a>
+</p>
+
 
 ---
 

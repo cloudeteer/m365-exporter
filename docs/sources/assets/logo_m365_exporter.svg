@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Skeleton" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1570 654.62">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #f29b25;
+      }
+
+      .cls-2 {
+        fill: none;
+        stroke: #36c0eb;
+        stroke-miterlimit: 10;
+        stroke-width: 30px;
+      }
+
+      .cls-3 {
+        fill: #33a0d8;
+      }
+
+      .cls-4 {
+        fill: #f27b27;
+      }
+
+      .cls-5 {
+        fill: #dd642f;
+      }
+
+      .cls-6 {
+        fill: #fcc922;
+      }
+
+      .cls-7 {
+        fill: #f79d25;
+      }
+
+      .cls-8 {
+        fill: #499a49;
+      }
+
+      .cls-9 {
+        fill: #ed7129;
+      }
+
+      .cls-10 {
+        fill: #30b5e2;
+      }
+
+      .cls-11 {
+        fill: #56842f;
+      }
+
+      .cls-12 {
+        fill: #c4432a;
+      }
+
+      .cls-13 {
+        fill: #2576b0;
+      }
+    </style>
+  </defs>
+  <rect id="Middle_Rectangle" data-name="Middle Rectangle" class="cls-2" x="232" y="274.58" width="76.01" height="76.01" transform="translate(300.11 -99.37) rotate(45)"/>
+  <polygon class="cls-13" points="0 12.58 245 237.58 170 312.58 0 12.58"/>
+  <polygon class="cls-3" points="0 12.58 141.67 262.58 60 262.58 0 12.58"/>
+  <polygon class="cls-8" points="170 312.58 0 362.58 60 262.58 141.67 262.58 170 312.58"/>
+  <polygon class="cls-10" points="270 112.58 0 12.58 245 237.58 270 212.58 270 112.58"/>
+  <polygon class="cls-1" points="270 112.58 270 212.58 295 237.58 540 12.58 270 112.58"/>
+  <polygon class="cls-9" points="295 237.58 370 312.58 540 12.58 295 237.58"/>
+  <polyline class="cls-6" points="480 262.58 540 12.58 398.33 262.58"/>
+  <polyline class="cls-12" points="270 642.58 345 337.58 370 312.58 540 362.58 420 412.58 270 642.58"/>
+  <polyline class="cls-11" points="195 337.58 270 642.58 120 412.58 0 362.58 170 312.58 195 337.58"/>
+  <polygon class="cls-4" points="270 412.58 345 337.58 270 642.58 270 412.58"/>
+  <polygon class="cls-7" points="195 337.58 270 412.58 270 642.58 195 337.58"/>
+  <polygon class="cls-5" points="398.33 262.58 480 262.58 540 362.58 370 312.58 398.33 262.58"/>
+</svg>
