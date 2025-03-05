@@ -6,7 +6,7 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.17.0
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.8.2
 	github.com/microsoft/kiota-abstractions-go v1.8.1
-	github.com/microsoftgraph/msgraph-sdk-go v1.61.0
+	github.com/microsoftgraph/msgraph-sdk-go v1.63.0
 	github.com/microsoftgraph/msgraph-sdk-go-core v1.2.1
 	github.com/prometheus/client_golang v1.21.0
 	github.com/spf13/cast v1.7.1
