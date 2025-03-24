@@ -43,6 +43,7 @@ The following collectors are implemented:
 | [securescore](docs/collector.securescore.md)     | Securescore             |
 | [servicehealth](docs/collector.servicehealth.md) | Service Health          |
 | [teams](docs/collector.servicehealth.md)         | Teams                   |
+| [sharepoint](docs/collector.sharepoint.md)       | Sharepoint              |
 
 ## Installation
 
@@ -91,6 +92,12 @@ Ref: https://learn.microsoft.com/en-us/powershell/exchange/connect-exo-powershel
 
 Permissions for Entra ID Connect Health must be set in the on the Entra ID Connect Health page via permissions.
 The `Read` permission is required.
+
+### Sharepoint API Permissions
+
+The exporter requires the following permissions to be set in the Entra ID app registration as Application permissions for the `Office 365 SharePoint Online` App:
+
+* Sites.FullControl.All
 
 ### Via config file
 
