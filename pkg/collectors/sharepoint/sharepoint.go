@@ -38,7 +38,6 @@ type sharepointError struct {
 }
 
 func (a sharepointError) Error() string {
-	fmt.Println(a.ErrorDescription)
 	return a.ErrorDescription
 }
 
@@ -85,7 +84,7 @@ func (c *Collector) ScrapeMetrics(ctx context.Context) ([]prometheus.Metric, err
 	errs := make([]error, 0)
 	metrics := make([]prometheus.Metric, 0, 1)
 
-	sharepointList, sharepointListerr := c.findSharepoints()
+	sharepointList, sharepointListerr := c.findSharepoints(ctx)
 	if sharepointListerr != nil {
 		errs = append(errs, fmt.Errorf("error listing sharepoints: %w", sharepointListerr))
 	}
@@ -94,6 +93,7 @@ func (c *Collector) ScrapeMetrics(ctx context.Context) ([]prometheus.Metric, err
 		sharepointResponse, err := c.getSharepointMetrics(ctx, sharepoint)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("error getting metrics from sharepoints: %w", err))
+
 			continue
 		}
 
@@ -146,7 +146,7 @@ func (c *Collector) ScrapeMetrics(ctx context.Context) ([]prometheus.Metric, err
 	return metrics, errors.Join(errs...)
 }
 
-func (c *Collector) findSharepoints() ([]string, error) {
+func (c *Collector) findSharepoints(ctx context.Context) ([]string, error) {
 	// https://learn.microsoft.com/en-gb/graph/api/site-list?view=graph-rest-1.0&tabs=http
 	filter := "siteCollection/root ne null"
 	query := sites.SitesRequestBuilderGetQueryParameters{
@@ -157,7 +157,7 @@ func (c *Collector) findSharepoints() ([]string, error) {
 		QueryParameters: &query,
 	}
 
-	sharepointSites, err := c.GraphClient().Sites().Get(context.Background(), &config)
+	sharepointSites, err := c.GraphClient().Sites().Get(ctx, &config)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching sharepoint sites: %w", err)
 	}
