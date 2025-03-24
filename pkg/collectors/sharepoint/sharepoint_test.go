@@ -1,6 +1,7 @@
 package sharepoint
 
 import (
+	"context"
 	"io"
 	"log/slog"
 	"net/http"
@@ -35,6 +36,6 @@ func TestCollector_findSharepoints(t *testing.T) {
 
 	collector := NewCollector(logger, tenantID, msGraphClient, httpClient.GetHTTPClient())
 
-	_, err = collector.findSharepoints()
+	_, err = collector.findSharepoints(context.Background())
 	require.NoError(t, err)
 }
