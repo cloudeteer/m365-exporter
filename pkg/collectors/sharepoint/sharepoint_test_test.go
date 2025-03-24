@@ -53,5 +53,5 @@ func TestCollector_ScrapeMetrics(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, allMetrics)
-	assert.Regexp(t, fmt.Sprintf(`m365_sharepoint_usage_info{.+,tenant="%s"} [0-9.e+-]`, tenantID), allMetrics)
+	assert.Regexp(t, fmt.Sprintf(`m365_sharepoint_usage_info{.+,tenant="%s",.+} [0-9.e+-]`, tenantID), allMetrics)
 }
