@@ -180,12 +180,12 @@ func setupMetricsCollectors(
 
 		{
 			collector: securescore.NewCollector(logger, tenantID, msGraphClient),
-			interval:  24 * time.Hour,
+			interval:  1 * time.Hour,
 		},
 
 		{
 			collector: license.NewCollector(logger, tenantID, msGraphClient),
-			interval:  time.Hour,
+			interval:  1 * time.Hour,
 		},
 
 		{
