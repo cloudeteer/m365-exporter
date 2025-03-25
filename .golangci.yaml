@@ -1,5 +1,6 @@
+version: "2"
 linters:
-  enable-all: true
+  default: all
   disable:
     - depguard
     - err113
@@ -10,47 +11,67 @@ linters:
     - ireturn
     - mnd
     - tagliatelle
-
-issues:
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - lll
-        - gocognit
-        - cyclop
-        - wrapcheck
-        - maintidx
-        - dogsled
-        - contextcheck
-        - dupword
-        - dupl
-        - funlen
-
-linters-settings:
-  varnamelen:
-    ignore-names:
-      - tt
-    ignore-decls:
-      - i int
-      - a ...any
-      - err error
-      - ok bool
-      - c *Collector
-      - ch chan<- prometheus.Metric
-  lll:
-    line-length: 160
-  sloglint:
-    no-mixed-args: true
-    kv-only: false
-    attr-only: true
-    no-global: "all"
-    context: "scope"
-    static-msg: false
-    no-raw-keys: false
-    key-naming-case: snake
-    forbidden-keys:
-      - time
-      - level
-      - msg
-      - source
-    args-on-sep-lines: true
+  settings:
+    lll:
+      line-length: 160
+    sloglint:
+      no-mixed-args: true
+      kv-only: false
+      attr-only: true
+      no-global: all
+      context: scope
+      static-msg: false
+      no-raw-keys: false
+      key-naming-case: snake
+      forbidden-keys:
+        - time
+        - level
+        - msg
+        - source
+      args-on-sep-lines: true
+    varnamelen:
+      ignore-names:
+        - tt
+      ignore-decls:
+        - i int
+        - a ...any
+        - err error
+        - ok bool
+        - c *Collector
+        - ch chan<- prometheus.Metric
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - contextcheck
+          - cyclop
+          - dogsled
+          - dupl
+          - dupword
+          - funlen
+          - gocognit
+          - lll
+          - maintidx
+          - wrapcheck
+        path: _test\.go
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
