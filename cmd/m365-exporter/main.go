@@ -21,6 +21,7 @@ import (
 	"github.com/cloudeteer/m365-exporter/pkg/collectors/onedrive"
 	"github.com/cloudeteer/m365-exporter/pkg/collectors/securescore"
 	"github.com/cloudeteer/m365-exporter/pkg/collectors/servicehealth"
+	"github.com/cloudeteer/m365-exporter/pkg/collectors/sharepoint"
 	"github.com/cloudeteer/m365-exporter/pkg/collectors/teams"
 	"github.com/cloudeteer/m365-exporter/pkg/conf"
 	"github.com/cloudeteer/m365-exporter/pkg/health"
@@ -179,12 +180,12 @@ func setupMetricsCollectors(
 
 		{
 			collector: securescore.NewCollector(logger, tenantID, msGraphClient),
-			interval:  24 * time.Hour,
+			interval:  1 * time.Hour,
 		},
 
 		{
 			collector: license.NewCollector(logger, tenantID, msGraphClient),
-			interval:  time.Hour,
+			interval:  1 * time.Hour,
 		},
 
 		{
@@ -213,6 +214,11 @@ func setupMetricsCollectors(
 		{
 			collector: entraid.NewCollector(logger, tenantID, msGraphClient),
 			interval:  3 * time.Hour,
+		},
+
+		{
+			collector: sharepoint.NewCollector(logger, tenantID, msGraphClient, httpClient),
+			interval:  1 * time.Hour,
 		},
 	} {
 		if err := reg.Register(val.collector); err != nil {

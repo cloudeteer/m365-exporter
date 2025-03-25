@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
@@ -85,8 +86,17 @@ func New(reg *prometheus.Registry) HTTPClient {
 func (c *HTTPClient) WithAzureCredential(cred azcore.TokenCredential) {
 	transport := c.client.Transport
 	c.client.Transport = roundTripperFunc(func(req *http.Request) (*http.Response, error) {
-		switch req.Host {
-		case "management.azure.com", "outlook.office365.com":
+		switch {
+		case req.Host == "management.azure.com", req.Host == "outlook.office365.com":
+			token, err := cred.GetToken(req.Context(), policy.TokenRequestOptions{
+				Scopes: []string{fmt.Sprintf("https://%s/.default", req.Host)},
+			})
+			if err != nil {
+				return nil, fmt.Errorf("getting token: %w", err)
+			}
+
+			req.Header.Set("Authorization", "Bearer "+token.Token)
+		case strings.HasSuffix(req.Host, "-admin.sharepoint.com"):
 			token, err := cred.GetToken(req.Context(), policy.TokenRequestOptions{
 				Scopes: []string{fmt.Sprintf("https://%s/.default", req.Host)},
 			})
