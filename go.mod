@@ -12,7 +12,7 @@ require (
 	github.com/microsoftgraph/msgraph-sdk-go-core v1.3.1
 	github.com/prometheus/client_golang v1.21.1
 	github.com/spf13/cast v1.7.1
-	github.com/spf13/viper v1.20.0
+	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
 )
 
