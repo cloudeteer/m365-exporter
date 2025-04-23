@@ -26,9 +26,18 @@ const (
 
 	KeyODriveScrambleNames = "onedrive.scrambleNames"
 	KeyODriveScrambleSalt  = "onedrive.scrambleSalt"
-	KeyODriveEnabled       = "onedrive.enabled"
 
-	KeyTeamsEnabled = "teams.enabled"
+	// Collector enabled flags.
+	KeyAdsSyncEnabled       = "adsync.enabled"
+	KeyExchangeEnabled      = "exchange.enabled"
+	KeySecureScoreEnabled   = "securescore.enabled"
+	KeyLicenseEnabled       = "license.enabled"
+	KeyServiceHealthEnabled = "servicehealth.enabled"
+	KeyIntuneEnabled        = "intune.enabled"
+	KeyEntraIDEnabled       = "entraid.enabled"
+	KeySharePointEnabled    = "sharepoint.enabled"
+	KeyTeamsEnabled         = "teams.enabled"
+	KeyODriveEnabled        = "onedrive.enabled"
 )
 
 // required in order to avoid global var.
@@ -46,11 +55,21 @@ func Configure(logger *slog.Logger) error {
 	v.SetDefault(KeyServiceHealthStatusRefreshRate, 5)
 	v.SetDefault(KeyserviceHealthIssueKeepDays, 30)
 
+	// Scramble the names of OneDrive Users if data protection is requiring it
 	v.SetDefault(KeyODriveScrambleNames, true)
 	v.SetDefault(KeyODriveScrambleSalt, "NsVfe9cRaH")
-	v.SetDefault(KeyODriveEnabled, true)
 
+	// Set default values for collector enabled flags
+	v.SetDefault(KeyAdsSyncEnabled, true)
+	v.SetDefault(KeyExchangeEnabled, true)
+	v.SetDefault(KeySecureScoreEnabled, true)
+	v.SetDefault(KeyLicenseEnabled, true)
+	v.SetDefault(KeyServiceHealthEnabled, true)
+	v.SetDefault(KeyIntuneEnabled, true)
+	v.SetDefault(KeyEntraIDEnabled, true)
+	v.SetDefault(KeySharePointEnabled, true)
 	v.SetDefault(KeyTeamsEnabled, true)
+	v.SetDefault(KeyODriveEnabled, true)
 
 	v.SetEnvPrefix(envPrefix)
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))

@@ -168,59 +168,68 @@ func setupMetricsCollectors(
 	for _, val := range []struct {
 		collector abstract.Collector
 		interval  time.Duration
+		enabled   bool
 	}{
 		{
 			collector: adsync.NewCollector(logger, tenantID, msGraphClient, httpClient),
 			interval:  1 * time.Hour,
+			enabled:   v.GetBool(conf.KeyAdsSyncEnabled),
 		},
 		{
 			collector: exchange.NewCollector(logger, tenantID, httpClient),
 			interval:  1 * time.Hour,
+			enabled:   v.GetBool(conf.KeyExchangeEnabled),
 		},
-
 		{
 			collector: securescore.NewCollector(logger, tenantID, msGraphClient),
 			interval:  1 * time.Hour,
+			enabled:   v.GetBool(conf.KeySecureScoreEnabled),
 		},
-
 		{
 			collector: license.NewCollector(logger, tenantID, msGraphClient),
 			interval:  1 * time.Hour,
+			enabled:   v.GetBool(conf.KeyLicenseEnabled),
 		},
-
 		{
 			collector: servicehealth.NewCollector(logger, tenantID, msGraphClient),
 			interval:  time.Duration(v.GetInt(conf.KeyServiceHealthStatusRefreshRate)) * time.Minute,
+			enabled:   v.GetBool(conf.KeyServiceHealthEnabled),
 		},
-
 		{
 			collector: intune.NewCollector(logger, tenantID, msGraphClient),
 			interval:  3 * time.Hour,
+			enabled:   v.GetBool(conf.KeyIntuneEnabled),
 		},
-
 		{
 			collector: onedrive.NewCollector(logger, tenantID, msGraphClient, onedrive.Settings{
 				ScrambleSalt:  v.GetString(conf.KeyODriveScrambleSalt),
 				ScrambleNames: v.GetBool(conf.KeyODriveScrambleNames),
 			}),
 			interval: 3 * time.Hour,
+			enabled:  v.GetBool(conf.KeyODriveEnabled),
 		},
-
 		{
 			collector: teams.NewCollector(logger, tenantID, msGraphClient),
 			interval:  3 * time.Hour,
+			enabled:   v.GetBool(conf.KeyTeamsEnabled),
 		},
-
 		{
 			collector: entraid.NewCollector(logger, tenantID, msGraphClient),
 			interval:  3 * time.Hour,
+			enabled:   v.GetBool(conf.KeyEntraIDEnabled),
 		},
-
 		{
 			collector: sharepoint.NewCollector(logger, tenantID, msGraphClient, httpClient),
 			interval:  1 * time.Hour,
+			enabled:   v.GetBool(conf.KeySharePointEnabled),
 		},
 	} {
+		if !val.enabled {
+			logger.InfoContext(ctx, "collector disabled, skipping registration",
+				slog.String("collector", val.collector.(interface{ GetSubsystem() string }).GetSubsystem()))
+			continue
+		}
+
 		if err := reg.Register(val.collector); err != nil {
 			return fmt.Errorf("failed to register collector: %w", err)
 		}

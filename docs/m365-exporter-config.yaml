@@ -11,3 +11,19 @@ oneDrive:
   scrambleSalt:
 teams:
   enabled: true
+adsync:
+  enabled: true
+exchange:
+  enabled: true
+securescore:
+  enabled: true
+license:
+  enabled: true
+servicehealth:
+  enabled: true
+intune:
+  enabled: true
+entraid:
+  enabled: true
+sharepoint:
+  enabled: true
