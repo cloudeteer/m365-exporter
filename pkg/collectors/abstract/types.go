@@ -12,4 +12,5 @@ type Collector interface {
 
 	StartBackgroundWorker(ctx context.Context, interval time.Duration)
 	ScrapeMetrics(ctx context.Context) ([]prometheus.Metric, error)
+	GetSubsystem() string
 }

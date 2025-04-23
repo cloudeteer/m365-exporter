@@ -25,11 +25,14 @@ type BaseCollector struct {
 	lastUpdateTimestamp   prometheus.Gauge
 	scrapeDurationSeconds prometheus.Gauge
 	scrapeSuccess         prometheus.Gauge
+
+	subsystem string
 }
 
 func NewBaseCollector(msGraphClient *msgraphsdk.GraphServiceClient, collector string) BaseCollector {
 	return BaseCollector{
 		msGraphClient: msGraphClient,
+		subsystem:     collector,
 		lastUpdateTimestamp: prometheus.NewGauge(prometheus.GaugeOpts{
 			Namespace: Namespace,
 			Subsystem: "collector",
@@ -81,16 +84,12 @@ func (c *BaseCollector) Collect(ch chan<- prometheus.Metric) {
 	c.collectMu.RUnlock()
 }
 
-func (c *BaseCollector) setMetrics(metrics []prometheus.Metric) {
-	c.collectMu.Lock()
-	c.metrics = metrics
-
-	c.lastUpdateTimestamp.SetToCurrentTime()
-	c.collectMu.Unlock()
-}
-
 func (c *BaseCollector) GraphClient() *msgraphsdk.GraphServiceClient {
 	return c.msGraphClient
+}
+
+func (c *BaseCollector) GetSubsystem() string {
+	return c.subsystem
 }
 
 func (c *BaseCollector) ScrapeWorker(
@@ -137,4 +136,12 @@ func (c *BaseCollector) ScrapeWorker(
 			return
 		}
 	}
+}
+
+func (c *BaseCollector) setMetrics(metrics []prometheus.Metric) {
+	c.collectMu.Lock()
+	c.metrics = metrics
+
+	c.lastUpdateTimestamp.SetToCurrentTime()
+	c.collectMu.Unlock()
 }
