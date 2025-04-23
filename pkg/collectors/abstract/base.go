@@ -88,6 +88,10 @@ func (c *BaseCollector) GraphClient() *msgraphsdk.GraphServiceClient {
 	return c.msGraphClient
 }
 
+func (c *BaseCollector) GetSubsystem() string {
+	return c.subsystem
+}
+
 func (c *BaseCollector) ScrapeWorker(
 	ctx context.Context, logger *slog.Logger, interval time.Duration, function func(ctx context.Context,
 	) ([]prometheus.Metric, error),
@@ -140,8 +144,4 @@ func (c *BaseCollector) setMetrics(metrics []prometheus.Metric) {
 
 	c.lastUpdateTimestamp.SetToCurrentTime()
 	c.collectMu.Unlock()
-}
-
-func (c *BaseCollector) GetSubsystem() string {
-	return c.subsystem
 }
