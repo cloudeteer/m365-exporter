@@ -225,8 +225,17 @@ func setupMetricsCollectors(
 		},
 	} {
 		if !val.enabled {
+			subsystemGetter, ok := val.collector.(interface{ GetSubsystem() string })
+			if !ok {
+				logger.InfoContext(ctx, "collector disabled, skipping registration",
+					slog.String("collector", "unknown"))
+
+				continue
+			}
+
 			logger.InfoContext(ctx, "collector disabled, skipping registration",
-				slog.String("collector", val.collector.(interface{ GetSubsystem() string }).GetSubsystem()))
+				slog.String("collector", subsystemGetter.GetSubsystem()))
+
 			continue
 		}
 

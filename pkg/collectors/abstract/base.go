@@ -84,14 +84,6 @@ func (c *BaseCollector) Collect(ch chan<- prometheus.Metric) {
 	c.collectMu.RUnlock()
 }
 
-func (c *BaseCollector) setMetrics(metrics []prometheus.Metric) {
-	c.collectMu.Lock()
-	c.metrics = metrics
-
-	c.lastUpdateTimestamp.SetToCurrentTime()
-	c.collectMu.Unlock()
-}
-
 func (c *BaseCollector) GraphClient() *msgraphsdk.GraphServiceClient {
 	return c.msGraphClient
 }
@@ -140,6 +132,14 @@ func (c *BaseCollector) ScrapeWorker(
 			return
 		}
 	}
+}
+
+func (c *BaseCollector) setMetrics(metrics []prometheus.Metric) {
+	c.collectMu.Lock()
+	c.metrics = metrics
+
+	c.lastUpdateTimestamp.SetToCurrentTime()
+	c.collectMu.Unlock()
 }
 
 func (c *BaseCollector) GetSubsystem() string {
