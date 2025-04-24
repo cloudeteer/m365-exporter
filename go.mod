@@ -8,7 +8,7 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.18.0
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.9.0
 	github.com/microsoft/kiota-abstractions-go v1.9.2
-	github.com/microsoftgraph/msgraph-sdk-go v1.67.0
+	github.com/microsoftgraph/msgraph-sdk-go v1.69.0
 	github.com/microsoftgraph/msgraph-sdk-go-core v1.3.2
 	github.com/prometheus/client_golang v1.21.1
 	github.com/spf13/cast v1.7.1
@@ -32,10 +32,10 @@ require (
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/microsoft/kiota-authentication-azure-go v1.3.0 // indirect
 	github.com/microsoft/kiota-http-go v1.5.2 // indirect
-	github.com/microsoft/kiota-serialization-form-go v1.1.1 // indirect
+	github.com/microsoft/kiota-serialization-form-go v1.1.2 // indirect
 	github.com/microsoft/kiota-serialization-json-go v1.1.2 // indirect
-	github.com/microsoft/kiota-serialization-multipart-go v1.1.1 // indirect
-	github.com/microsoft/kiota-serialization-text-go v1.1.1 // indirect
+	github.com/microsoft/kiota-serialization-multipart-go v1.1.2 // indirect
+	github.com/microsoft/kiota-serialization-text-go v1.1.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
