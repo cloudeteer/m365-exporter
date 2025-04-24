@@ -115,6 +115,31 @@ A fully fledged example config file can be found in the [docs folder](docs/m365-
 | `onedrive.scrambleNames`                  | `bool` whether the label for individual onedrive metrics should have a scrambled version of the UPN  |
 | `onedrive.scrambleSalt`                   | Set the salt to scramble the UPNs, a default value is set, so UPN hashes are always salted           |
 
+Each collector can be disabled using this schema:
+
+```yaml
+oneDrive:
+  enabled: false
+teams:
+  enabled: true
+adsync:
+  enabled: true
+exchange:
+  enabled: true
+securescore:
+  enabled: true
+license:
+  enabled: true
+servicehealth:
+  enabled: true
+intune:
+  enabled: true
+entraid:
+  enabled: true
+sharepoint:
+  enabled: true
+```
+
 ### Via environment variables
 
 Environment variables can be used to set configuration parameters. If a parameter is set via the environment, it takes precedence over
