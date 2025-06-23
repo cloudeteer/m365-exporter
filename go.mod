@@ -11,7 +11,7 @@ require (
 	github.com/microsoftgraph/msgraph-sdk-go v1.69.0
 	github.com/microsoftgraph/msgraph-sdk-go-core v1.3.2
 	github.com/prometheus/client_golang v1.22.0
-	github.com/spf13/cast v1.7.1
+	github.com/spf13/cast v1.9.2
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
 )
