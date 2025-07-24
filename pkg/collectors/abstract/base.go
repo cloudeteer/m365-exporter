@@ -74,7 +74,9 @@ func (c *BaseCollector) Collect(ch chan<- prometheus.Metric) {
 	c.collectMu.RLock()
 
 	ch <- c.lastUpdateTimestamp
+
 	ch <- c.scrapeDurationSeconds
+
 	ch <- c.scrapeSuccess
 
 	for _, m := range c.metrics {
@@ -98,7 +100,7 @@ func (c *BaseCollector) ScrapeWorker(
 ) {
 	defer func() {
 		if r := recover(); r != nil {
-			logger.Error("panic in scrapeWorker",
+			logger.ErrorContext(ctx, "panic in scrapeWorker",
 				slog.Any("err", r),
 				slog.String("stack", string(debug.Stack())),
 			)
