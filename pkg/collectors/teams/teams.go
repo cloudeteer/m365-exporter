@@ -60,6 +60,7 @@ func (c *Collector) Describe(ch chan<- *prometheus.Desc) {
 	c.BaseCollector.Describe(ch)
 
 	ch <- c.memberDesc
+
 	ch <- c.ownerDesc
 }
 

@@ -107,7 +107,9 @@ func (c *Collector) Describe(ch chan<- *prometheus.Desc) {
 	c.BaseCollector.Describe(ch)
 
 	ch <- c.enabledDesc
+
 	ch <- c.lastSyncDesc
+
 	ch <- c.errorDesc
 }
 
@@ -208,8 +210,9 @@ func (c *Collector) getSyncServices(ctx context.Context) (entraIDServices, error
 	}
 
 	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			c.logger.Error("error closing response body", slog.Any("err", err))
+		err := resp.Body.Close()
+		if err != nil {
+			c.logger.ErrorContext(ctx, "error closing response body", slog.Any("err", err))
 		}
 	}()
 
@@ -221,14 +224,16 @@ func (c *Collector) getSyncServices(ctx context.Context) (entraIDServices, error
 	if resp.StatusCode != http.StatusOK {
 		var azureError azureError
 
-		if err = json.Unmarshal(body, &azureError); err != nil {
+		err = json.Unmarshal(body, &azureError)
+		if err != nil {
 			return services, fmt.Errorf("error unmarshalling response (status %d): %s", resp.StatusCode, body)
 		}
 
 		return services, fmt.Errorf("unexpected status code %d: %w", resp.StatusCode, azureError)
 	}
 
-	if err = json.Unmarshal(body, &services); err != nil {
+	err = json.Unmarshal(body, &services)
+	if err != nil {
 		return services, fmt.Errorf("error unmarshalling response: body %s, error %w", body, err)
 	}
 
@@ -249,8 +254,9 @@ func (c *Collector) getEntraServiceSyncErrors(ctx context.Context, service entra
 	}
 
 	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			c.logger.Error("error closing response body", slog.Any("err", err))
+		err := resp.Body.Close()
+		if err != nil {
+			c.logger.ErrorContext(ctx, "error closing response body", slog.Any("err", err))
 		}
 	}()
 
@@ -262,7 +268,8 @@ func (c *Collector) getEntraServiceSyncErrors(ctx context.Context, service entra
 	if resp.StatusCode != http.StatusOK {
 		var azureError azureError
 
-		if err = json.Unmarshal(body, &azureError); err != nil {
+		err = json.Unmarshal(body, &azureError)
+		if err != nil {
 			return nil, fmt.Errorf("error unmarshalling response (status %d): %s", resp.StatusCode, body)
 		}
 
@@ -271,7 +278,8 @@ func (c *Collector) getEntraServiceSyncErrors(ctx context.Context, service entra
 
 	var entraIDSyncErrors []entraIDSyncError
 
-	if err = json.Unmarshal(body, &entraIDSyncErrors); err != nil {
+	err = json.Unmarshal(body, &entraIDSyncErrors)
+	if err != nil {
 		return nil, fmt.Errorf("error unmarshalling response: body %s, error %w", body, err)
 	}
 
