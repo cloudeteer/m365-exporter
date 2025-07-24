@@ -146,7 +146,8 @@ func run(logWriter io.Writer) int {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		if err := server.Shutdown(ctx); err != nil {
+		err := server.Shutdown(ctx)
+		if err != nil {
 			logger.ErrorContext(ctx, "failed to shutdown server",
 				slog.Any("error", err),
 			)
@@ -241,7 +242,8 @@ func setupMetricsCollectors(
 			continue
 		}
 
-		if err := reg.Register(val.collector); err != nil {
+		err := reg.Register(val.collector)
+		if err != nil {
 			return fmt.Errorf("failed to register collector: %w", err)
 		}
 
