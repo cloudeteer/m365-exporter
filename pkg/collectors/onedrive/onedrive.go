@@ -82,7 +82,9 @@ func (c *Collector) Describe(ch chan<- *prometheus.Desc) {
 	c.BaseCollector.Describe(ch)
 
 	ch <- c.totalDesc
+
 	ch <- c.usedOpts
+
 	ch <- c.deletedOps
 }
 

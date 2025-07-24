@@ -33,7 +33,8 @@ func NewHandler(logger *slog.Logger, listenAddr, metricsEndpoint string) http.Ha
 			return
 		}
 
-		if _, err = io.ReadAll(resp.Body); err != nil {
+		_, err = io.ReadAll(resp.Body)
+		if err != nil {
 			responseWriter.WriteHeader(http.StatusInternalServerError)
 
 			return

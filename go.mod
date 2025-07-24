@@ -2,10 +2,10 @@ module github.com/cloudeteer/m365-exporter
 
 go 1.23.0
 
-toolchain go1.24.4
+toolchain go1.24.5
 
 require (
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.18.0
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.18.1
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.10.1
 	github.com/microsoft/kiota-abstractions-go v1.9.3
 	github.com/microsoftgraph/msgraph-sdk-go v1.75.0
