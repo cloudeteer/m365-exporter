@@ -76,7 +76,8 @@ func Configure(logger *slog.Logger) error {
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.AutomaticEnv()
 
-	if err := v.BindEnv(KeyAzureTenantID, "AZURE_TENANT_ID"); err != nil {
+	err := v.BindEnv(KeyAzureTenantID, "AZURE_TENANT_ID")
+	if err != nil {
 		return fmt.Errorf("could not bind environment variable AZURE_TENANT_ID: %w", err)
 	}
 
