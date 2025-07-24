@@ -95,7 +95,8 @@ func run(logWriter io.Writer) int {
 
 	tenantID := v.GetString(conf.KeyAzureTenantID)
 
-	if err := setupMetricsCollectors(ctx, logger, reg, tenantID, msGraphClient, httpClient.GetHTTPClient()); err != nil {
+	err = setupMetricsCollectors(ctx, logger, reg, tenantID, msGraphClient, httpClient.GetHTTPClient())
+	if err != nil {
 		logger.ErrorContext(ctx, "failed to setup metrics collectors",
 			slog.Any("error", err),
 		)
@@ -129,7 +130,8 @@ func run(logWriter io.Writer) int {
 
 	// start server in a goroutine to be able to gracefully shutdown the server
 	go func() {
-		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		err := server.ListenAndServe()
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			errCh <- err
 		}
 
