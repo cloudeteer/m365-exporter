@@ -111,7 +111,9 @@ func (c *Collector) Describe(ch chan<- *prometheus.Desc) {
 	c.BaseCollector.Describe(ch)
 
 	ch <- c.infoDesc
+
 	ch <- c.healthDesc
+
 	ch <- c.issueDesc
 }
 
@@ -206,7 +208,7 @@ func (c *Collector) getHealthIssueMetrics(ctx context.Context) ([]prometheus.Met
 
 	metrics := make([]prometheus.Metric, 0, 50)
 
-	if err = pageIterator.Iterate(ctx, func(issue *models.ServiceHealthIssue) bool {
+	err = pageIterator.Iterate(ctx, func(issue *models.ServiceHealthIssue) bool {
 		if !*issue.GetIsResolved() {
 			metrics = append(metrics, prometheus.MustNewConstMetric(
 				c.issueDesc,
@@ -245,7 +247,8 @@ func (c *Collector) getHealthIssueMetrics(ctx context.Context) ([]prometheus.Met
 
 		// Return true to continue the iteration
 		return true
-	}); err != nil {
+	})
+	if err != nil {
 		return nil, fmt.Errorf("failed to iterate through service issues: %w", err)
 	}
 

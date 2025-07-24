@@ -193,8 +193,9 @@ func (c *Collector) getSharepointMetrics(ctx context.Context, sharepoint string)
 	}
 
 	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			c.logger.Error("error closing response body", slog.Any("err", err))
+		err := resp.Body.Close()
+		if err != nil {
+			c.logger.ErrorContext(ctx, "error closing response body", slog.Any("err", err))
 		}
 	}()
 
@@ -206,14 +207,16 @@ func (c *Collector) getSharepointMetrics(ctx context.Context, sharepoint string)
 	if resp.StatusCode != http.StatusOK {
 		var sharepointError sharepointError
 
-		if err = json.Unmarshal(body, &sharepointError); err != nil {
+		err = json.Unmarshal(body, &sharepointError)
+		if err != nil {
 			return sharepointResponse, fmt.Errorf("error unmarshalling response (status %d): %s", resp.StatusCode, body)
 		}
 
 		return sharepointResponse, fmt.Errorf("unexpected status code %d: %w", resp.StatusCode, sharepointError)
 	}
 
-	if err = json.Unmarshal(body, &sharepointResponse); err != nil {
+	err = json.Unmarshal(body, &sharepointResponse)
+	if err != nil {
 		return sharepointResponse, fmt.Errorf("error unmarshalling response: body %s, error %w", body, err)
 	}
 
