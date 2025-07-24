@@ -1,6 +1,7 @@
 package conf
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -98,7 +99,7 @@ func Configure(logger *slog.Logger) error {
 			return fmt.Errorf("encountered a fatal error while reading the configuration in file %s: %w", v.ConfigFileUsed(), configErr)
 		}
 
-		logger.Info(fmt.Sprintf("did not find a config file in any of %s, using defaults and environment", getConfigLocations()))
+		logger.InfoContext(context.Background(), fmt.Sprintf("did not find a config file in any of %s, using defaults and environment", getConfigLocations()))
 	}
 
 	// set Azure env for Azure SDK
@@ -113,7 +114,7 @@ func Configure(logger *slog.Logger) error {
 
 	// check if service health status refresh rate is an int
 	if _, err := strconv.ParseInt(v.GetString(KeyServiceHealthStatusRefreshRate), 10, 64); err != nil {
-		logger.Warn("ServiceHealthStatusRefreshRate is no integer. Setting it to default which is 5 minutes", slog.Any("err", err))
+		logger.WarnContext(context.Background(), "ServiceHealthStatusRefreshRate is no integer. Setting it to default which is 5 minutes", slog.Any("err", err))
 		v.Set(KeyServiceHealthStatusRefreshRate, 5)
 	}
 

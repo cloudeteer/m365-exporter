@@ -13,6 +13,7 @@ linters:
     - ireturn
     - mnd
     - tagliatelle
+    - revive
   settings:
     lll:
       line-length: 160
@@ -34,6 +35,7 @@ linters:
     varnamelen:
       ignore-names:
         - tt
+        - ch
       ignore-decls:
         - i int
         - a ...any
