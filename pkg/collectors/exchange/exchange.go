@@ -101,8 +101,9 @@ func (c *Collector) scrapeMailflowMetrics(ctx context.Context) ([]prometheus.Met
 	}
 
 	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			c.logger.Error("error closing response body", slog.Any("err", err))
+		err := resp.Body.Close()
+		if err != nil {
+			c.logger.ErrorContext(ctx, "error closing response body", slog.Any("err", err))
 		}
 	}()
 
@@ -117,7 +118,8 @@ func (c *Collector) scrapeMailflowMetrics(ctx context.Context) ([]prometheus.Met
 
 	var mailFlowResponse MailFlowResponse
 
-	if err = json.Unmarshal(body, &mailFlowResponse); err != nil {
+	err = json.Unmarshal(body, &mailFlowResponse)
+	if err != nil {
 		return nil, fmt.Errorf("error unmarshalling response: body %s, error %w", body, err)
 	}
 

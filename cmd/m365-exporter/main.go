@@ -95,7 +95,8 @@ func run(logWriter io.Writer) int {
 
 	tenantID := v.GetString(conf.KeyAzureTenantID)
 
-	if err := setupMetricsCollectors(ctx, logger, reg, tenantID, msGraphClient, httpClient.GetHTTPClient()); err != nil {
+	err = setupMetricsCollectors(ctx, logger, reg, tenantID, msGraphClient, httpClient.GetHTTPClient())
+	if err != nil {
 		logger.ErrorContext(ctx, "failed to setup metrics collectors",
 			slog.Any("error", err),
 		)
@@ -129,7 +130,8 @@ func run(logWriter io.Writer) int {
 
 	// start server in a goroutine to be able to gracefully shutdown the server
 	go func() {
-		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		err := server.ListenAndServe()
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			errCh <- err
 		}
 
@@ -144,7 +146,8 @@ func run(logWriter io.Writer) int {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		if err := server.Shutdown(ctx); err != nil {
+		err := server.Shutdown(ctx)
+		if err != nil {
 			logger.ErrorContext(ctx, "failed to shutdown server",
 				slog.Any("error", err),
 			)
@@ -239,7 +242,8 @@ func setupMetricsCollectors(
 			continue
 		}
 
-		if err := reg.Register(val.collector); err != nil {
+		err := reg.Register(val.collector)
+		if err != nil {
 			return fmt.Errorf("failed to register collector: %w", err)
 		}
 
