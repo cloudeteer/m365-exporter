@@ -104,7 +104,8 @@ func Configure(logger *slog.Logger) error {
 	}
 
 	// set Azure env for Azure SDK
-	if err := os.Setenv("AZURE_TENANT_ID", v.GetString(KeyAzureTenantID)); err != nil {
+	err = os.Setenv("AZURE_TENANT_ID", v.GetString(KeyAzureTenantID))
+	if err != nil {
 		return fmt.Errorf("could not set environment variable AZURE_TENANT_ID: %w", err)
 	}
 
@@ -114,7 +115,8 @@ func Configure(logger *slog.Logger) error {
 	}
 
 	// check if service health status refresh rate is an int
-	if _, err := strconv.ParseInt(v.GetString(KeyServiceHealthStatusRefreshRate), 10, 64); err != nil {
+	_, err = strconv.ParseInt(v.GetString(KeyServiceHealthStatusRefreshRate), 10, 64)
+	if err != nil {
 		logger.WarnContext(context.Background(), "ServiceHealthStatusRefreshRate is no integer. Setting it to default which is 5 minutes", slog.Any("err", err))
 		v.Set(KeyServiceHealthStatusRefreshRate, 5)
 	}

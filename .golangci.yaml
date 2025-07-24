@@ -43,6 +43,10 @@ linters:
         - ok bool
         - c *Collector
         - ch chan<- prometheus.Metric
+    wsl_v5:
+      allow-first-in-block: true
+      allow-whole-block: false
+      branch-max-lines: 2
   exclusions:
     generated: lax
     presets:
