@@ -10,8 +10,8 @@ None
 
 | Name                                          | Description                                        | Type  | Labels                                  |
 |-----------------------------------------------|----------------------------------------------------|-------|-----------------------------------------|
-| `m365_adsync_on_premises_sync_enabled`        | status of azure ad connect synchronization         | Gauge | `tenant`                                |
-| `m365_adsync_on_premises_last_sync_date_time` | last Unix time of azure ad connect synchronization | Gauge | `tenant`                                |
+| `m365_adsync_on_premises_sync_enabled`        | status of Azure ad connect synchronization         | Gauge | `tenant`                                |
+| `m365_adsync_on_premises_last_sync_date_time` | last Unix time of Azure ad connect synchronization | Gauge | `tenant`                                |
 | `m365_adsync_on_premises_sync_error`          | count of Entra ID connect synchronization errors   | Gauge | `tenant`,`sync_service`, `error_bucket` |
 
 ## Example metric
