@@ -52,3 +52,43 @@ func TestCollector_scrapeDevices(t *testing.T) {
 	assert.NotEmpty(t, allMetrics)
 	assert.Contains(t, allMetrics, "m365_intune_device_count")
 }
+
+func TestCollector_scrapeVppTokens(t *testing.T) {
+	t.Parallel()
+
+	var (
+		ok       bool
+		tenantID string
+	)
+
+	if tenantID, ok = os.LookupEnv("AZURE_TENANT_ID"); !ok {
+		t.Skip("no AZURE_TENANT_ID environment variable set")
+	}
+
+	// TODO: Go 1.24: Change to slog.NewDiscardHandler
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+
+	// TODO: make this a singleton for all tests
+	msGraphClient, azureCredential, err := auth.NewMSGraphClient(http.DefaultClient)
+	require.NoError(t, err)
+
+	httpClient := httpclient.New(prometheus.NewRegistry())
+	httpClient.WithAzureCredential(azureCredential)
+
+	collector := NewCollector(logger, tenantID, msGraphClient)
+
+	// TODO: Go 1.24: Change to t.Context()
+	metrics, err := collector.scrapeVppTokens(context.Background())
+	require.NoError(t, err)
+
+	// VPP tokens might not exist in all tenants, so we just check that the function doesn't error
+	// and returns metrics (even if empty)
+	allMetrics, err := testutil.MetricsToText(t, metrics)
+	require.NoError(t, err)
+
+	// If VPP tokens exist, we should see the metrics
+	if len(metrics) > 0 {
+		assert.Contains(t, allMetrics, "m365_intune_vpp_status")
+		assert.Contains(t, allMetrics, "m365_intune_vpp_expiry")
+	}
+}

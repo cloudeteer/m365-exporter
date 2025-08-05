@@ -20,6 +20,7 @@ import (
 const (
 	subsystem             = "intune"
 	osIdentifierSeparator = "___"
+	unknownValue          = "unknown"
 )
 
 // Interface guard.
@@ -32,6 +33,8 @@ type Collector struct {
 
 	complianceDesc *prometheus.Desc
 	osDesc         *prometheus.Desc
+	vppStatusDesc  *prometheus.Desc
+	vppExpiryDesc  *prometheus.Desc
 }
 
 func NewCollector(logger *slog.Logger, tenant string, msGraphClient *msgraphsdk.GraphServiceClient) *Collector {
@@ -55,6 +58,22 @@ func NewCollector(logger *slog.Logger, tenant string, msGraphClient *msgraphsdk.
 				"tenant": tenant,
 			},
 		),
+		vppStatusDesc: prometheus.NewDesc(
+			prometheus.BuildFQName(abstract.Namespace, subsystem, "vpp_status"),
+			"Status of VPP tokens (1 for valid, 0 for other states)",
+			[]string{"appleId", "organizationName"},
+			prometheus.Labels{
+				"tenant": tenant,
+			},
+		),
+		vppExpiryDesc: prometheus.NewDesc(
+			prometheus.BuildFQName(abstract.Namespace, subsystem, "vpp_expiry"),
+			"Expiration timestamp of VPP tokens in Unix timestamp",
+			[]string{"appleId", "organizationName"},
+			prometheus.Labels{
+				"tenant": tenant,
+			},
+		),
 	}
 }
 
@@ -66,6 +85,12 @@ func (c *Collector) Describe(ch chan<- *prometheus.Desc) {
 	c.BaseCollector.Describe(ch)
 
 	ch <- c.complianceDesc
+
+	ch <- c.osDesc
+
+	ch <- c.vppStatusDesc
+
+	ch <- c.vppExpiryDesc
 }
 
 func (c *Collector) ScrapeMetrics(ctx context.Context) ([]prometheus.Metric, error) {
@@ -81,7 +106,12 @@ func (c *Collector) ScrapeMetrics(ctx context.Context) ([]prometheus.Metric, err
 		errs = append(errs, fmt.Errorf("error scraping os metrics: %w", err))
 	}
 
-	return slices.Concat(complianceMetrics, osMetrics), errors.Join(errs...)
+	vppMetrics, err := c.scrapeVppTokens(ctx)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("error scraping vpp token metrics: %w", err))
+	}
+
+	return slices.Concat(complianceMetrics, osMetrics, vppMetrics), errors.Join(errs...)
 }
 
 func (c *Collector) scrapeCompliance(ctx context.Context) ([]prometheus.Metric, error) {
@@ -156,11 +186,11 @@ func (c *Collector) iterateThroughDevices(ctx context.Context, dIterator *graphc
 		osVersion := device.GetOsVersion()
 
 		if osName == nil || *osName == "" {
-			*osName = "unknown"
+			*osName = unknownValue
 		}
 
 		if osVersion == nil || *osVersion == "" {
-			*osVersion = "unknown"
+			*osVersion = unknownValue
 		}
 
 		osIdentifier := *osName + osIdentifierSeparator + *osVersion
@@ -185,6 +215,85 @@ func (c *Collector) iterateThroughDevices(ctx context.Context, dIterator *graphc
 			count,
 			osIdentifierParts[0], osIdentifierParts[1],
 		))
+	}
+
+	return metrics, nil
+}
+
+func (c *Collector) scrapeVppTokens(ctx context.Context) ([]prometheus.Metric, error) {
+	vppTokens, err := c.GraphClient().DeviceAppManagement().VppTokens().Get(ctx, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get VPP tokens: %w", util.GetOdataError(err))
+	}
+
+	vIterator, err := graphcore.NewPageIterator[*models.VppToken](
+		vppTokens,
+		c.GraphClient().GetAdapter(),
+		models.CreateVppTokenCollectionResponseFromDiscriminatorValue,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create VPP token iterator: %w", util.GetOdataError(err))
+	}
+
+	metrics := make([]prometheus.Metric, 0)
+
+	err = vIterator.Iterate(ctx, func(vppToken *models.VppToken) bool {
+		// Get required fields
+		appleId := vppToken.GetAppleId()
+		organizationName := vppToken.GetOrganizationName()
+		state := vppToken.GetState()
+		expirationDateTime := vppToken.GetExpirationDateTime()
+
+		// Handle nil values
+		if appleId == nil {
+			appleId = new(string)
+			*appleId = unknownValue
+		}
+
+		if organizationName == nil {
+			organizationName = new(string)
+			*organizationName = unknownValue
+		}
+
+		// Calculate status metric (1 for valid, 0 for other states)
+		var statusValue float64
+		if state != nil && *state == models.VppTokenState(1) { // VppTokenState(1) is "valid"
+			statusValue = 1.0
+		} else {
+			statusValue = 0.0
+		}
+
+		// Create status metric
+		statusMetric := prometheus.MustNewConstMetric(
+			c.vppStatusDesc,
+			prometheus.GaugeValue,
+			statusValue,
+			*appleId, *organizationName,
+		)
+		metrics = append(metrics, statusMetric)
+
+		// Calculate expiry metric (Unix timestamp)
+		var expiryValue float64
+		if expirationDateTime != nil {
+			expiryValue = float64(expirationDateTime.Unix())
+		} else {
+			// If no expiration date, use 0
+			expiryValue = 0.0
+		}
+
+		// Create expiry metric
+		expiryMetric := prometheus.MustNewConstMetric(
+			c.vppExpiryDesc,
+			prometheus.GaugeValue,
+			expiryValue,
+			*appleId, *organizationName,
+		)
+		metrics = append(metrics, expiryMetric)
+
+		return true
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to iterate through VPP tokens: %w", util.GetOdataError(err))
 	}
 
 	return metrics, nil
