@@ -71,7 +71,6 @@ func NewCollector(logger *slog.Logger, tenant string, msGraphClient *msgraphsdk.
 	return &Collector{
 		BaseCollector: abstract.NewBaseCollector(msGraphClient, subsystem),
 		logger:        logger.With(slog.String("collector", subsystem)),
-		tenant:        tenant,
 
 		complianceDesc: prometheus.NewDesc(
 			prometheus.BuildFQName(abstract.Namespace, subsystem, "device_compliance"),
@@ -108,7 +107,7 @@ func NewCollector(logger *slog.Logger, tenant string, msGraphClient *msgraphsdk.
 		depExpiryDesc: prometheus.NewDesc(
 			prometheus.BuildFQName(abstract.Namespace, subsystem, "dep_token_expiry"),
 			"Expiration timestamp of Apple DEP onboarding tokens in Unix timestamp",
-			[]string{"appleIdentifier", "id", "tenantId"},
+			[]string{"appleIdentifier", "id"},
 			prometheus.Labels{
 				"tenant": tenant,
 			},
@@ -412,7 +411,6 @@ func (c *Collector) scrapeDepOnboardingSettings(ctx context.Context) ([]promethe
 			expiryValue,
 			depSetting.AppleIdentifier,
 			depSetting.ID,
-			c.tenant, // tenantId is constant (the tenant we're monitoring)
 		)
 		metrics = append(metrics, metric)
 	}
