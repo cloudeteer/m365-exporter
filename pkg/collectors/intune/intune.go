@@ -56,7 +56,6 @@ type Collector struct {
 	abstract.BaseCollector
 
 	logger *slog.Logger
-	tenant string
 
 	complianceDesc *prometheus.Desc
 	osDesc         *prometheus.Desc
