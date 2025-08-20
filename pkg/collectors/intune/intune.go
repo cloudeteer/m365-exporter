@@ -2,9 +2,12 @@ package intune
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
+	"net/http"
 	"slices"
 	"strings"
 	"time"
@@ -28,26 +31,47 @@ const (
 	vppStatusExpired               = 2.0
 	vppStatusInvalid               = 3.0
 	vppStatusAssignedToExternalMDM = 4.0
+
+	// DEP Onboarding Settings API URL
+	URLDepOnboardingSettings = "https://graph.microsoft.com/beta/deviceManagement/depOnboardingSettings"
 )
 
 // Interface guard.
 var _ abstract.Collector = (*Collector)(nil)
 
+// depOnboardingSetting represents a DEP onboarding setting from the Microsoft Graph API
+type depOnboardingSetting struct {
+	ID                      string    `json:"id"`
+	AppleIdentifier         string    `json:"appleIdentifier"`
+	TokenExpirationDateTime time.Time `json:"tokenExpirationDateTime"`
+	TokenName               string    `json:"tokenName"`
+}
+
+// depOnboardingSettingsResponse represents the response from the DEP onboarding settings API
+type depOnboardingSettingsResponse struct {
+	Value []depOnboardingSetting `json:"value"`
+}
+
 type Collector struct {
 	abstract.BaseCollector
 
 	logger *slog.Logger
+	tenant string
 
 	complianceDesc *prometheus.Desc
 	osDesc         *prometheus.Desc
 	vppStatusDesc  *prometheus.Desc
 	vppExpiryDesc  *prometheus.Desc
+	depExpiryDesc  *prometheus.Desc
+
+	httpClient *http.Client
 }
 
-func NewCollector(logger *slog.Logger, tenant string, msGraphClient *msgraphsdk.GraphServiceClient) *Collector {
+func NewCollector(logger *slog.Logger, tenant string, msGraphClient *msgraphsdk.GraphServiceClient, httpClient *http.Client) *Collector {
 	return &Collector{
 		BaseCollector: abstract.NewBaseCollector(msGraphClient, subsystem),
 		logger:        logger.With(slog.String("collector", subsystem)),
+		tenant:        tenant,
 
 		complianceDesc: prometheus.NewDesc(
 			prometheus.BuildFQName(abstract.Namespace, subsystem, "device_compliance"),
@@ -68,7 +92,7 @@ func NewCollector(logger *slog.Logger, tenant string, msGraphClient *msgraphsdk.
 		vppStatusDesc: prometheus.NewDesc(
 			prometheus.BuildFQName(abstract.Namespace, subsystem, "vpp_status"),
 			"Status of VPP tokens (0=unknown, 1=valid, 2=expired, 3=invalid, 4=assigned_to_external_mdm)",
-			[]string{"appleId", "organizationName"},
+			[]string{"appleId", "organizationName", "id"},
 			prometheus.Labels{
 				"tenant": tenant,
 			},
@@ -76,11 +100,21 @@ func NewCollector(logger *slog.Logger, tenant string, msGraphClient *msgraphsdk.
 		vppExpiryDesc: prometheus.NewDesc(
 			prometheus.BuildFQName(abstract.Namespace, subsystem, "vpp_expiry"),
 			"Expiration timestamp of VPP tokens in Unix timestamp",
-			[]string{"appleId", "organizationName"},
+			[]string{"appleId", "organizationName", "id"},
 			prometheus.Labels{
 				"tenant": tenant,
 			},
 		),
+		depExpiryDesc: prometheus.NewDesc(
+			prometheus.BuildFQName(abstract.Namespace, subsystem, "dep_token_expiry"),
+			"Expiration timestamp of DEP onboarding tokens in Unix timestamp",
+			[]string{"appleIdentifier", "id", "tenantId"},
+			prometheus.Labels{
+				"tenant": tenant,
+			},
+		),
+
+		httpClient: httpClient,
 	}
 }
 
@@ -98,6 +132,8 @@ func (c *Collector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- c.vppStatusDesc
 
 	ch <- c.vppExpiryDesc
+
+	ch <- c.depExpiryDesc
 }
 
 func (c *Collector) ScrapeMetrics(ctx context.Context) ([]prometheus.Metric, error) {
@@ -115,10 +151,15 @@ func (c *Collector) ScrapeMetrics(ctx context.Context) ([]prometheus.Metric, err
 
 	vppMetrics, err := c.scrapeVppTokens(ctx)
 	if err != nil {
-		errs = append(errs, fmt.Errorf("error scraping vpp token metrics: %w", err))
+		errs = append(errs, fmt.Errorf("error scraping apple vpp token metrics: %w", err))
 	}
 
-	return slices.Concat(complianceMetrics, osMetrics, vppMetrics), errors.Join(errs...)
+	depMetrics, err := c.scrapeDepOnboardingSettings(ctx)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("error scraping apple dep onboarding settings metrics: %w", err))
+	}
+
+	return slices.Concat(complianceMetrics, osMetrics, vppMetrics, depMetrics), errors.Join(errs...)
 }
 
 func (c *Collector) scrapeCompliance(ctx context.Context) ([]prometheus.Metric, error) {
@@ -248,6 +289,7 @@ func (c *Collector) scrapeVppTokens(ctx context.Context) ([]prometheus.Metric, e
 		// Get required fields
 		appleId := vppToken.GetAppleId()
 		organizationName := vppToken.GetOrganizationName()
+		tokenId := vppToken.GetId()
 		state := vppToken.GetState()
 		expirationDateTime := vppToken.GetExpirationDateTime()
 
@@ -260,6 +302,11 @@ func (c *Collector) scrapeVppTokens(ctx context.Context) ([]prometheus.Metric, e
 		if organizationName == nil {
 			organizationName = new(string)
 			*organizationName = unknownValue
+		}
+
+		if tokenId == nil {
+			tokenId = new(string)
+			*tokenId = unknownValue
 		}
 
 		// Calculate status metric based on all possible states
@@ -287,7 +334,7 @@ func (c *Collector) scrapeVppTokens(ctx context.Context) ([]prometheus.Metric, e
 			c.vppStatusDesc,
 			prometheus.GaugeValue,
 			statusValue,
-			*appleId, *organizationName,
+			*appleId, *organizationName, *tokenId,
 		)
 		metrics = append(metrics, statusMetric)
 
@@ -305,7 +352,7 @@ func (c *Collector) scrapeVppTokens(ctx context.Context) ([]prometheus.Metric, e
 			c.vppExpiryDesc,
 			prometheus.GaugeValue,
 			expiryValue,
-			*appleId, *organizationName,
+			*appleId, *organizationName, *tokenId,
 		)
 		metrics = append(metrics, expiryMetric)
 
@@ -313,6 +360,61 @@ func (c *Collector) scrapeVppTokens(ctx context.Context) ([]prometheus.Metric, e
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to iterate through VPP tokens: %w", util.GetOdataError(err))
+	}
+
+	return metrics, nil
+}
+
+func (c *Collector) scrapeDepOnboardingSettings(ctx context.Context) ([]prometheus.Metric, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, URLDepOnboardingSettings, nil)
+	if err != nil {
+		return nil, fmt.Errorf("error creating request: %w", err)
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("error sending request: %w", err)
+	}
+
+	defer func() {
+		err := resp.Body.Close()
+		if err != nil {
+			c.logger.ErrorContext(ctx, "error closing response body", slog.Any("err", err))
+		}
+	}()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("error reading response body: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code %d: %s", resp.StatusCode, string(body))
+	}
+
+	var depResponse depOnboardingSettingsResponse
+
+	err = json.Unmarshal(body, &depResponse)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling response: body %s, error %w", string(body), err)
+	}
+
+	metrics := make([]prometheus.Metric, 0, len(depResponse.Value))
+
+	for _, depSetting := range depResponse.Value {
+		// Use Unix timestamp for token expiration
+		expiryValue := float64(depSetting.TokenExpirationDateTime.Unix())
+
+		// Create metric with appleIdentifier, id, and tenantId as labels
+		metric := prometheus.MustNewConstMetric(
+			c.depExpiryDesc,
+			prometheus.GaugeValue,
+			expiryValue,
+			depSetting.AppleIdentifier,
+			depSetting.ID,
+			c.tenant, // tenantId is constant (the tenant we're monitoring)
+		)
+		metrics = append(metrics, metric)
 	}
 
 	return metrics, nil

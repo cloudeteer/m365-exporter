@@ -38,7 +38,7 @@ func TestCollector_scrapeDevices(t *testing.T) {
 	httpClient := httpclient.New(prometheus.NewRegistry())
 	httpClient.WithAzureCredential(azureCredential)
 
-	collector := NewCollector(logger, tenantID, msGraphClient)
+	collector := NewCollector(logger, tenantID, msGraphClient, httpClient.GetHTTPClient())
 
 	// TODO: Go 1.24: Change to t.Context()
 	metrics, err := collector.scrapeDevices(context.Background())
@@ -75,7 +75,7 @@ func TestCollector_scrapeVppTokens(t *testing.T) {
 	httpClient := httpclient.New(prometheus.NewRegistry())
 	httpClient.WithAzureCredential(azureCredential)
 
-	collector := NewCollector(logger, tenantID, msGraphClient)
+	collector := NewCollector(logger, tenantID, msGraphClient, httpClient.GetHTTPClient())
 
 	// TODO: Go 1.24: Change to t.Context()
 	metrics, err := collector.scrapeVppTokens(context.Background())
