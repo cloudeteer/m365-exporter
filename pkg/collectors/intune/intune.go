@@ -91,7 +91,7 @@ func NewCollector(logger *slog.Logger, tenant string, msGraphClient *msgraphsdk.
 		),
 		vppStatusDesc: prometheus.NewDesc(
 			prometheus.BuildFQName(abstract.Namespace, subsystem, "vpp_status"),
-			"Status of VPP tokens (0=unknown, 1=valid, 2=expired, 3=invalid, 4=assigned_to_external_mdm)",
+			"Status of Apple VPP tokens (0=unknown, 1=valid, 2=expired, 3=invalid, 4=assigned_to_external_mdm)",
 			[]string{"appleId", "organizationName", "id"},
 			prometheus.Labels{
 				"tenant": tenant,
@@ -99,7 +99,7 @@ func NewCollector(logger *slog.Logger, tenant string, msGraphClient *msgraphsdk.
 		),
 		vppExpiryDesc: prometheus.NewDesc(
 			prometheus.BuildFQName(abstract.Namespace, subsystem, "vpp_expiry"),
-			"Expiration timestamp of VPP tokens in Unix timestamp",
+			"Expiration timestamp of Apple VPP tokens in Unix timestamp",
 			[]string{"appleId", "organizationName", "id"},
 			prometheus.Labels{
 				"tenant": tenant,
@@ -107,7 +107,7 @@ func NewCollector(logger *slog.Logger, tenant string, msGraphClient *msgraphsdk.
 		),
 		depExpiryDesc: prometheus.NewDesc(
 			prometheus.BuildFQName(abstract.Namespace, subsystem, "dep_token_expiry"),
-			"Expiration timestamp of DEP onboarding tokens in Unix timestamp",
+			"Expiration timestamp of Apple DEP onboarding tokens in Unix timestamp",
 			[]string{"appleIdentifier", "id", "tenantId"},
 			prometheus.Labels{
 				"tenant": tenant,
