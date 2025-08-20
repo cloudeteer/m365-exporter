@@ -75,6 +75,7 @@ The exporter requires the following permissions to be set in the Entra ID app re
 - Sites.Read.All
 - TeamSettings.Read.All
 - User.Read.All
+- DeviceManagementServiceConfig.Read.All
 
 Keep in mind, after granting the permissions, the administrator must consent to them.
 

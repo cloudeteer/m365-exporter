@@ -8,10 +8,12 @@ None
 
 ## Metrics
 
-| Name                            | Description                                               | Type  | Labels                            |
-|---------------------------------|-----------------------------------------------------------|-------|-----------------------------------|
-| `m365_intune_device_compliance` | Compliance of devices managed by Intune                   | Gauge | `tenant`, `type`                  |
-| `m365_intune_device_count`      | Device information of devices managed by Intune           | Gauge | `tenant`, `os_name`, `os_version` |
+| Name                            | Description                                               | Type  | Labels                                    |
+|---------------------------------|-----------------------------------------------------------|-------|-------------------------------------------|
+| `m365_intune_device_compliance` | Compliance of devices managed by Intune                   | Gauge | `tenant`, `type`                          |
+| `m365_intune_device_count`      | Device information of devices managed by Intune           | Gauge | `tenant`, `os_name`, `os_version`         |
+| `m365_intune_vpp_status`        | Status of VPP tokens (0=unknown, 1=valid, 2=expired, 3=invalid, 4=assigned_to_external_mdm) | Gauge | `tenant`, `appleId`, `organizationName`   |
+| `m365_intune_vpp_expiry`        | Expiration timestamp of VPP tokens in Unix timestamp      | Gauge | `tenant`, `appleId`, `organizationName`   |
 
 ## Example metric
 
@@ -44,6 +46,12 @@ m365_intune_device_count{os_name="iOS",os_version="17.5.1",tenant="0000000-0000-
 m365_intune_device_count{os_name="iOS",os_version="17.6.1",tenant="0000000-0000-0000-0000-000000000000"} 4
 m365_intune_device_count{os_name="iOS",os_version="17.7",tenant="0000000-0000-0000-0000-000000000000"} 1
 m365_intune_device_count{os_name="iOS",os_version="18.0",tenant="0000000-0000-0000-0000-000000000000"} 1
+# HELP m365_intune_vpp_status Status of VPP tokens (0=unknown, 1=valid, 2=expired, 3=invalid, 4=assigned_to_external_mdm)
+# TYPE m365_intune_vpp_status gauge
+m365_intune_vpp_status{appleId="example@company.appleid.com",organizationName="Example Organization",tenant="0000000-0000-0000-0000-000000000000"} 1
+# HELP m365_intune_vpp_expiry Expiration timestamp of VPP tokens in Unix timestamp
+# TYPE m365_intune_vpp_expiry gauge
+m365_intune_vpp_expiry{appleId="example@company.appleid.com",organizationName="Example Organization",tenant="0000000-0000-0000-0000-000000000000"} 1.782552802e+09
 ```
 
 ## Useful queries

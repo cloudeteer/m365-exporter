@@ -21,6 +21,13 @@ const (
 	subsystem             = "intune"
 	osIdentifierSeparator = "___"
 	unknownValue          = "unknown"
+
+	// VPP Token Status Values
+	vppStatusUnknown               = 0.0
+	vppStatusValid                 = 1.0
+	vppStatusExpired               = 2.0
+	vppStatusInvalid               = 3.0
+	vppStatusAssignedToExternalMDM = 4.0
 )
 
 // Interface guard.
@@ -60,7 +67,7 @@ func NewCollector(logger *slog.Logger, tenant string, msGraphClient *msgraphsdk.
 		),
 		vppStatusDesc: prometheus.NewDesc(
 			prometheus.BuildFQName(abstract.Namespace, subsystem, "vpp_status"),
-			"Status of VPP tokens (1 for valid, 0 for other states)",
+			"Status of VPP tokens (0=unknown, 1=valid, 2=expired, 3=invalid, 4=assigned_to_external_mdm)",
 			[]string{"appleId", "organizationName"},
 			prometheus.Labels{
 				"tenant": tenant,
@@ -220,6 +227,75 @@ func (c *Collector) iterateThroughDevices(ctx context.Context, dIterator *graphc
 	return metrics, nil
 }
 
+func (c *Collector) getVppStatusValue(state *models.VppTokenState) float64 {
+	if state == nil {
+		return vppStatusUnknown
+	}
+
+	switch *state {
+	case models.UNKNOWN_VPPTOKENSTATE:
+		return vppStatusUnknown
+	case models.VALID_VPPTOKENSTATE:
+		return vppStatusValid
+	case models.EXPIRED_VPPTOKENSTATE:
+		return vppStatusExpired
+	case models.INVALID_VPPTOKENSTATE:
+		return vppStatusInvalid
+	case models.ASSIGNEDTOEXTERNALMDM_VPPTOKENSTATE:
+		return vppStatusAssignedToExternalMDM
+	default:
+		return vppStatusUnknown
+	}
+}
+
+func (c *Collector) getVppExpiryValue(expirationDateTime *time.Time) float64 {
+	if expirationDateTime == nil {
+		return 0.0
+	}
+
+	return float64(expirationDateTime.Unix())
+}
+
+func (c *Collector) createVppMetrics(vppToken *models.VppToken) []prometheus.Metric {
+	// Get required fields
+	appleId := vppToken.GetAppleId()
+	organizationName := vppToken.GetOrganizationName()
+	state := vppToken.GetState()
+	expirationDateTime := vppToken.GetExpirationDateTime()
+
+	// Handle nil values
+	if appleId == nil {
+		appleId = new(string)
+		*appleId = unknownValue
+	}
+
+	if organizationName == nil {
+		organizationName = new(string)
+		*organizationName = unknownValue
+	}
+
+	// Calculate values
+	statusValue := c.getVppStatusValue(state)
+	expiryValue := c.getVppExpiryValue(expirationDateTime)
+
+	// Create metrics
+	statusMetric := prometheus.MustNewConstMetric(
+		c.vppStatusDesc,
+		prometheus.GaugeValue,
+		statusValue,
+		*appleId, *organizationName,
+	)
+
+	expiryMetric := prometheus.MustNewConstMetric(
+		c.vppExpiryDesc,
+		prometheus.GaugeValue,
+		expiryValue,
+		*appleId, *organizationName,
+	)
+
+	return []prometheus.Metric{statusMetric, expiryMetric}
+}
+
 func (c *Collector) scrapeVppTokens(ctx context.Context) ([]prometheus.Metric, error) {
 	vppTokens, err := c.GraphClient().DeviceAppManagement().VppTokens().Get(ctx, nil)
 	if err != nil {
@@ -238,57 +314,8 @@ func (c *Collector) scrapeVppTokens(ctx context.Context) ([]prometheus.Metric, e
 	metrics := make([]prometheus.Metric, 0)
 
 	err = vIterator.Iterate(ctx, func(vppToken *models.VppToken) bool {
-		// Get required fields
-		appleId := vppToken.GetAppleId()
-		organizationName := vppToken.GetOrganizationName()
-		state := vppToken.GetState()
-		expirationDateTime := vppToken.GetExpirationDateTime()
-
-		// Handle nil values
-		if appleId == nil {
-			appleId = new(string)
-			*appleId = unknownValue
-		}
-
-		if organizationName == nil {
-			organizationName = new(string)
-			*organizationName = unknownValue
-		}
-
-		// Calculate status metric (1 for valid, 0 for other states)
-		var statusValue float64
-		if state != nil && *state == models.VppTokenState(1) { // VppTokenState(1) is "valid"
-			statusValue = 1.0
-		} else {
-			statusValue = 0.0
-		}
-
-		// Create status metric
-		statusMetric := prometheus.MustNewConstMetric(
-			c.vppStatusDesc,
-			prometheus.GaugeValue,
-			statusValue,
-			*appleId, *organizationName,
-		)
-		metrics = append(metrics, statusMetric)
-
-		// Calculate expiry metric (Unix timestamp)
-		var expiryValue float64
-		if expirationDateTime != nil {
-			expiryValue = float64(expirationDateTime.Unix())
-		} else {
-			// If no expiration date, use 0
-			expiryValue = 0.0
-		}
-
-		// Create expiry metric
-		expiryMetric := prometheus.MustNewConstMetric(
-			c.vppExpiryDesc,
-			prometheus.GaugeValue,
-			expiryValue,
-			*appleId, *organizationName,
-		)
-		metrics = append(metrics, expiryMetric)
+		vppMetrics := c.createVppMetrics(vppToken)
+		metrics = append(metrics, vppMetrics...)
 
 		return true
 	})
