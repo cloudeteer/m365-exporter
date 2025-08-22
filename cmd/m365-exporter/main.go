@@ -199,7 +199,7 @@ func setupMetricsCollectors(
 			enabled:   v.GetBool(conf.KeyServiceHealthEnabled),
 		},
 		{
-			collector: intune.NewCollector(logger, tenantID, msGraphClient),
+			collector: intune.NewCollector(logger, tenantID, msGraphClient, httpClient),
 			interval:  3 * time.Hour,
 			enabled:   v.GetBool(conf.KeyIntuneEnabled),
 		},

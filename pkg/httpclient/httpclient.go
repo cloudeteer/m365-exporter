@@ -96,6 +96,15 @@ func (c *HTTPClient) WithAzureCredential(cred azcore.TokenCredential) {
 			}
 
 			req.Header.Set("Authorization", "Bearer "+token.Token)
+		case req.Host == "graph.microsoft.com":
+			token, err := cred.GetToken(req.Context(), policy.TokenRequestOptions{
+				Scopes: []string{"https://graph.microsoft.com/.default"},
+			})
+			if err != nil {
+				return nil, fmt.Errorf("getting token: %w", err)
+			}
+
+			req.Header.Set("Authorization", "Bearer "+token.Token)
 		case strings.HasSuffix(req.Host, "-admin.sharepoint.com"):
 			token, err := cred.GetToken(req.Context(), policy.TokenRequestOptions{
 				Scopes: []string{fmt.Sprintf("https://%s/.default", req.Host)},
