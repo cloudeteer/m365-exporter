@@ -14,7 +14,7 @@ None
 | `m365_intune_device_count`      | Device information of devices managed by Intune                                                   | Gauge | `tenant`, `os_name`, `os_version`         |
 | `m365_intune_vpp_status`        | Status of Apple VPP tokens (0=unknown, 1=valid, 2=expired, 3=invalid, 4=assigned_to_external_mdm) | Gauge | `tenant`, `appleId`, `organizationName`, `id` |
 | `m365_intune_vpp_expiry`        | Expiration timestamp of Apple VPP tokens in Unix timestamp                                        | Gauge | `tenant`, `appleId`, `organizationName`, `id` |
-| `m365_intune_dep_token_expiry`  | Expiration timestamp of Apple DEP onboarding tokens in Unix timestamp                             | Gauge | `tenant`, `appleIdentifier`, `id`, `tenantId` |
+| `m365_intune_dep_token_expiry`  | Expiration timestamp of Apple DEP onboarding tokens in Unix timestamp                             | Gauge | `tenant`, `appleIdentifier`, `id`              |
 
 ## Example metric
 
