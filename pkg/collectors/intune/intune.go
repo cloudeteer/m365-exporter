@@ -62,6 +62,7 @@ type Collector struct {
 	vppStatusDesc  *prometheus.Desc
 	vppExpiryDesc  *prometheus.Desc
 	depExpiryDesc  *prometheus.Desc
+	apnExpiryDesc  *prometheus.Desc
 
 	httpClient *http.Client
 }
@@ -111,6 +112,14 @@ func NewCollector(logger *slog.Logger, tenant string, msGraphClient *msgraphsdk.
 				"tenant": tenant,
 			},
 		),
+		apnExpiryDesc: prometheus.NewDesc(
+			prometheus.BuildFQName(abstract.Namespace, subsystem, "apn_expiry"),
+			"Expiration timestamp of Apple Push Notification Certificate in Unix timestamp",
+			[]string{"appleIdentifier", "topicIdentifier", "id"},
+			prometheus.Labels{
+				"tenant": tenant,
+			},
+		),
 
 		httpClient: httpClient,
 	}
@@ -132,6 +141,8 @@ func (c *Collector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- c.vppExpiryDesc
 
 	ch <- c.depExpiryDesc
+
+	ch <- c.apnExpiryDesc
 }
 
 func (c *Collector) ScrapeMetrics(ctx context.Context) ([]prometheus.Metric, error) {
@@ -157,7 +168,12 @@ func (c *Collector) ScrapeMetrics(ctx context.Context) ([]prometheus.Metric, err
 		errs = append(errs, fmt.Errorf("error scraping apple dep onboarding settings metrics: %w", err))
 	}
 
-	return slices.Concat(complianceMetrics, osMetrics, vppMetrics, depMetrics), errors.Join(errs...)
+	apnMetrics, err := c.scrapeApplePushNotificationCertificate(ctx)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("error scraping apple push notification certificate metrics: %w", err))
+	}
+
+	return slices.Concat(complianceMetrics, osMetrics, vppMetrics, depMetrics, apnMetrics), errors.Join(errs...)
 }
 
 func (c *Collector) scrapeCompliance(ctx context.Context) ([]prometheus.Metric, error) {
@@ -413,6 +429,59 @@ func (c *Collector) scrapeDepOnboardingSettings(ctx context.Context) ([]promethe
 		)
 		metrics = append(metrics, metric)
 	}
+
+	return metrics, nil
+}
+
+func (c *Collector) scrapeApplePushNotificationCertificate(ctx context.Context) ([]prometheus.Metric, error) {
+	apnCertificate, err := c.GraphClient().DeviceManagement().ApplePushNotificationCertificate().Get(ctx, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get Apple Push Notification Certificate: %w", util.GetOdataError(err))
+	}
+
+	metrics := make([]prometheus.Metric, 0, 1)
+
+	// Get required fields
+	appleIdentifier := apnCertificate.GetAppleIdentifier()
+	topicIdentifier := apnCertificate.GetTopicIdentifier()
+	certificateId := apnCertificate.GetId()
+	expirationDateTime := apnCertificate.GetExpirationDateTime()
+
+	// Handle nil values
+	if appleIdentifier == nil {
+		appleIdentifier = new(string)
+		*appleIdentifier = unknownValue
+	}
+
+	if topicIdentifier == nil {
+		topicIdentifier = new(string)
+		*topicIdentifier = unknownValue
+	}
+
+	if certificateId == nil {
+		certificateId = new(string)
+		*certificateId = unknownValue
+	}
+
+	// Calculate expiry metric (Unix timestamp)
+	var expiryValue float64
+	if expirationDateTime != nil {
+		expiryValue = float64(expirationDateTime.Unix())
+	} else {
+		// If no expiration date, use 0
+		expiryValue = 0.0
+	}
+
+	// Create metric with appleIdentifier, topicIdentifier, and id as labels
+	metric := prometheus.MustNewConstMetric(
+		c.apnExpiryDesc,
+		prometheus.GaugeValue,
+		expiryValue,
+		*appleIdentifier,
+		*topicIdentifier,
+		*certificateId,
+	)
+	metrics = append(metrics, metric)
 
 	return metrics, nil
 }

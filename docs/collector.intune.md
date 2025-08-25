@@ -15,6 +15,7 @@ None
 | `m365_intune_vpp_status`        | Status of Apple VPP tokens (0=unknown, 1=valid, 2=expired, 3=invalid, 4=assigned_to_external_mdm) | Gauge | `tenant`, `appleId`, `organizationName`, `id` |
 | `m365_intune_vpp_expiry`        | Expiration timestamp of Apple VPP tokens in Unix timestamp                                        | Gauge | `tenant`, `appleId`, `organizationName`, `id` |
 | `m365_intune_dep_token_expiry`  | Expiration timestamp of Apple DEP onboarding tokens in Unix timestamp                             | Gauge | `tenant`, `appleIdentifier`, `id`              |
+| `m365_intune_apn_expiry`        | Expiration timestamp of Apple Push Notification Certificate in Unix timestamp                      | Gauge | `tenant`, `appleIdentifier`, `topicIdentifier`, `id` |
 
 ## Example metric
 
@@ -56,6 +57,9 @@ m365_intune_vpp_expiry{appleId="example@company.appleid.com",id="0000000-0000-00
 # HELP m365_intune_dep_token_expiry Expiration timestamp of Apple DEP onboarding tokens in Unix timestamp
 # TYPE m365_intune_dep_token_expiry gauge
 m365_intune_dep_token_expiry{appleIdentifier="example@company.appleid.com",id="0000000-0000-0000-0000-000000000000",tenantId="0000000-0000-0000-0000-000000000000",tenant="0000000-0000-0000-0000-000000000000"} 1.735689594e+09
+# HELP m365_intune_apn_expiry Expiration timestamp of Apple Push Notification Certificate in Unix timestamp
+# TYPE m365_intune_apn_expiry gauge
+m365_intune_apn_expiry{appleIdentifier="example@company.appleid.com",topicIdentifier="com.apple.mgmt.External.example-uuid",id="0000000-0000-0000-0000-000000000000",tenant="0000000-0000-0000-0000-000000000000"} 1.782552802e+09
 ```
 
 ## Useful queries
