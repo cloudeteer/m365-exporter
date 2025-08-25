@@ -143,3 +143,40 @@ func TestCollector_scrapeDepOnboardingSettings(t *testing.T) {
 		assert.Contains(t, allMetrics, "m365_intune_dep_token_expiry")
 	}
 }
+
+func TestCollector_scrapeApplePushNotificationCertificate(t *testing.T) {
+	t.Parallel()
+
+	var (
+		ok       bool
+		tenantID string
+	)
+
+	if tenantID, ok = os.LookupEnv("AZURE_TENANT_ID"); !ok {
+		t.Skip("no AZURE_TENANT_ID environment variable set")
+	}
+
+	// TODO: Go 1.24: Change to slog.NewDiscardHandler
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+
+	msGraphClient, azureCredential := getMSGraphClient(t)
+
+	httpClient := httpclient.New(prometheus.NewRegistry())
+	httpClient.WithAzureCredential(azureCredential)
+
+	collector := NewCollector(logger, tenantID, msGraphClient, httpClient.GetHTTPClient())
+
+	// TODO: Go 1.24: Change to t.Context()
+	metrics, err := collector.scrapeApplePushNotificationCertificate(context.Background())
+	require.NoError(t, err)
+
+	// Apple Push Notification Certificate might not exist in all tenants, so we just check that the function doesn't error
+	// and returns metrics (even if empty)
+	allMetrics, err := testutil.MetricsToText(t, metrics)
+	require.NoError(t, err)
+
+	// If Apple Push Notification Certificate exists, we should see the metrics
+	if len(metrics) > 0 {
+		assert.Contains(t, allMetrics, "m365_intune_apn_expiry")
+	}
+}
