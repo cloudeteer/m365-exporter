@@ -28,6 +28,7 @@
 # dont commit local config for testing
 m365-exporter-config.yaml
 !/docs/m365-exporter-config.yaml
+AZURE_FEDERATED_TOKEN_FILE.token
 
 coverage.out
 codecov
