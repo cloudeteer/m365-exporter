@@ -19,6 +19,7 @@ import (
 	"github.com/cloudeteer/m365-exporter/pkg/collectors/intune"
 	"github.com/cloudeteer/m365-exporter/pkg/collectors/license"
 	"github.com/cloudeteer/m365-exporter/pkg/collectors/onedrive"
+	"github.com/cloudeteer/m365-exporter/pkg/collectors/power"
 	"github.com/cloudeteer/m365-exporter/pkg/collectors/securescore"
 	"github.com/cloudeteer/m365-exporter/pkg/collectors/servicehealth"
 	"github.com/cloudeteer/m365-exporter/pkg/collectors/sharepoint"
@@ -225,6 +226,11 @@ func setupMetricsCollectors(
 			collector: sharepoint.NewCollector(logger, tenantID, msGraphClient, httpClient),
 			interval:  1 * time.Hour,
 			enabled:   v.GetBool(conf.KeySharePointEnabled),
+		},
+		{
+			collector: power.NewCollector(logger, tenantID, msGraphClient, httpClient),
+			interval:  1 * time.Hour,
+			enabled:   v.GetBool(conf.KeyPowerEnabled),
 		},
 	} {
 		if !val.enabled {

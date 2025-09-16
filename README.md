@@ -100,6 +100,22 @@ The exporter requires the following permissions to be set in the Entra ID app re
 
 * Sites.FullControl.All
 
+### Power Platform API Permissions
+
+The exporter requires access to the Power Platform API to collect capacity and licensing metrics. To grant permissions to your service principal:
+
+1. Connect to Power Platform using PowerShell:
+   ```powershell
+   Add-PowerAppsAccount -Endpoint prod -TenantID "your-tenant-id"
+   ```
+
+2. Grant the service principal access to Power Platform:
+   ```powershell
+   New-PowerAppManagementApp -ApplicationId "your-client-id"
+   ```
+
+Replace `your-tenant-id` with your Azure AD tenant ID and `your-client-id` with your service principal's application ID.
+
 ### Via config file
 
 By default, the exporter will search in `/etc/m365-exporter/` a file named `m365-exporter-config.yaml`, alternatively the file can be placed
@@ -138,6 +154,8 @@ intune:
 entraid:
   enabled: true
 sharepoint:
+  enabled: true
+power:
   enabled: true
 ```
 
