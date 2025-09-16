@@ -107,7 +107,7 @@ func NewCollector(logger *slog.Logger, tenant string, msGraphClient *msgraphsdk.
 		depExpiryDesc: prometheus.NewDesc(
 			prometheus.BuildFQName(abstract.Namespace, subsystem, "dep_token_expiry"),
 			"Expiration timestamp of Apple DEP onboarding tokens in Unix timestamp",
-			[]string{"appleIdentifier", "id"},
+			[]string{"appleId", "id"},
 			prometheus.Labels{
 				"tenant": tenant,
 			},
@@ -115,7 +115,7 @@ func NewCollector(logger *slog.Logger, tenant string, msGraphClient *msgraphsdk.
 		apnExpiryDesc: prometheus.NewDesc(
 			prometheus.BuildFQName(abstract.Namespace, subsystem, "apn_expiry"),
 			"Expiration timestamp of Apple Push Notification Certificate in Unix timestamp",
-			[]string{"appleIdentifier", "topicIdentifier", "id"},
+			[]string{"appleId", "topicIdentifier", "id"},
 			prometheus.Labels{
 				"tenant": tenant,
 			},
@@ -419,7 +419,7 @@ func (c *Collector) scrapeDepOnboardingSettings(ctx context.Context) ([]promethe
 		// Use Unix timestamp for token expiration
 		expiryValue := float64(depSetting.TokenExpirationDateTime.Unix())
 
-		// Create metric with appleIdentifier, id, and tenantId as labels
+		// Create metric with appleId, id, and tenantId as labels
 		metric := prometheus.MustNewConstMetric(
 			c.depExpiryDesc,
 			prometheus.GaugeValue,
@@ -442,15 +442,15 @@ func (c *Collector) scrapeApplePushNotificationCertificate(ctx context.Context) 
 	metrics := make([]prometheus.Metric, 0, 1)
 
 	// Get required fields
-	appleIdentifier := apnCertificate.GetAppleIdentifier()
+	appleId := apnCertificate.GetAppleIdentifier()
 	topicIdentifier := apnCertificate.GetTopicIdentifier()
 	certificateId := apnCertificate.GetId()
 	expirationDateTime := apnCertificate.GetExpirationDateTime()
 
 	// Handle nil values
-	if appleIdentifier == nil {
-		appleIdentifier = new(string)
-		*appleIdentifier = unknownValue
+	if appleId == nil {
+		appleId = new(string)
+		*appleId = unknownValue
 	}
 
 	if topicIdentifier == nil {
@@ -472,12 +472,12 @@ func (c *Collector) scrapeApplePushNotificationCertificate(ctx context.Context) 
 		expiryValue = 0.0
 	}
 
-	// Create metric with appleIdentifier, topicIdentifier, and id as labels
+	// Create metric with appleId, topicIdentifier, and id as labels
 	metric := prometheus.MustNewConstMetric(
 		c.apnExpiryDesc,
 		prometheus.GaugeValue,
 		expiryValue,
-		*appleIdentifier,
+		*appleId,
 		*topicIdentifier,
 		*certificateId,
 	)
