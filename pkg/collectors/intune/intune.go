@@ -32,7 +32,7 @@ const (
 	vppStatusInvalid               = 3.0
 	vppStatusAssignedToExternalMDM = 4.0
 
-	// DEP Onboarding Settings API URL
+	// URLDepOnboardingSettings DEP Onboarding Settings API URL
 	URLDepOnboardingSettings = "https://graph.microsoft.com/beta/deviceManagement/depOnboardingSettings"
 )
 
