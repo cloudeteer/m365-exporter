@@ -30,7 +30,9 @@ jobs:
         run: |-
           OIDC_TOKEN_JSON="$(curl -sSf -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=api://AzureADTokenExchange")"
           OIDC_TOKEN="$(jq -r '.value' <<< "${OIDC_TOKEN_JSON}")"
-          printf '%s' "${OIDC_TOKEN}" >"${AZURE_FEDERATED_TOKEN_FILE}
+          printf '%s' "${OIDC_TOKEN}" >"${AZURE_FEDERATED_TOKEN_FILE}"
+        env:
+          AZURE_FEDERATED_TOKEN_FILE: "${{ format('{0}/.az-token', runner.temp) }}"
 
       - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
         with:
