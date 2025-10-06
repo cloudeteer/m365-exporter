@@ -29,7 +29,7 @@ const (
 	KeyODriveScrambleSalt  = "onedrive.scrambleSalt"
 
 	// Collector enabled flags.
-	// nolint: godoclint
+	//nolint: godoclint
 	KeyAdsSyncEnabled       = "adsync.enabled"
 	KeyExchangeEnabled      = "exchange.enabled"
 	KeySecureScoreEnabled   = "securescore.enabled"
