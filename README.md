@@ -42,7 +42,7 @@ The following collectors are implemented:
 | [onedrive](docs/collector.license.md)            | Onedrive usage          |
 | [securescore](docs/collector.securescore.md)     | Securescore             |
 | [servicehealth](docs/collector.servicehealth.md) | Service Health          |
-| [teams](docs/collector.servicehealth.md)         | Teams                   |
+| [teams](docs/collector.teams.md)                 | Teams                   |
 | [sharepoint](docs/collector.sharepoint.md)       | Sharepoint              |
 
 ## Installation
