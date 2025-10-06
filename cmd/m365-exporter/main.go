@@ -228,9 +228,11 @@ func setupMetricsCollectors(
 			enabled:   v.GetBool(conf.KeySharePointEnabled),
 		},
 		{
-			collector: application.NewCollector(logger, tenantID, msGraphClient),
-			interval:  1 * time.Hour,
-			enabled:   v.GetBool(conf.KeyApplicationEnabled),
+			collector: application.NewCollector(logger, tenantID, msGraphClient, application.Settings{
+				Filter: v.GetString(conf.KeyApplicationFilter),
+			}),
+			interval: 1 * time.Hour,
+			enabled:  v.GetBool(conf.KeyApplicationEnabled),
 		},
 	} {
 		if !val.enabled {

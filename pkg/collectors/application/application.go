@@ -26,9 +26,15 @@ type Collector struct {
 
 	secretExpirationDesc *prometheus.Desc
 	secretExpiredDesc    *prometheus.Desc
+
+	settings Settings
 }
 
-func NewCollector(logger *slog.Logger, tenant string, msGraphClient *msgraphsdk.GraphServiceClient) *Collector {
+type Settings struct {
+	Filter string
+}
+
+func NewCollector(logger *slog.Logger, tenant string, msGraphClient *msgraphsdk.GraphServiceClient, settings Settings) *Collector {
 	return &Collector{
 		BaseCollector: abstract.NewBaseCollector(msGraphClient, subsystem),
 		logger:        logger.With(slog.String("collector", subsystem)),
@@ -49,6 +55,7 @@ func NewCollector(logger *slog.Logger, tenant string, msGraphClient *msgraphsdk.
 				"tenant": tenant,
 			},
 		),
+		settings: settings,
 	}
 }
 
@@ -64,8 +71,10 @@ func (c *Collector) Describe(ch chan<- *prometheus.Desc) {
 }
 
 func (c *Collector) ScrapeMetrics(ctx context.Context) ([]prometheus.Metric, error) {
+	filter := c.settings.Filter
 	query := &applications.ApplicationsRequestBuilderGetQueryParameters{
 		Select: []string{"id", "appId", "displayName", "passwordCredentials"},
+		Filter: &filter,
 	}
 	request := &applications.ApplicationsRequestBuilderGetRequestConfiguration{
 		QueryParameters: query,
