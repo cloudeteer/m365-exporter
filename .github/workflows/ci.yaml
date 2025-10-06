@@ -30,6 +30,11 @@ jobs:
 
       - run: go build -o m365-exporter ./cmd/m365-exporter
 
+      - name: get token url
+        run: |
+          echo "get full url"
+          echo "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=api://AzureADTokenExchange"
+
       - name: Fetch OIDC token from GH actions API
         run: |-
           OIDC_TOKEN_JSON="$(curl -sSf -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=api://AzureADTokenExchange")"
