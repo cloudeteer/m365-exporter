@@ -4,7 +4,11 @@ The application collector collects metrics about Azure AD / Entra ID application
 
 ## Configuration
 
-None
+
+| Config Parameter        | Info                                                                                                       |
+|-------------------------|------------------------------------------------------------------------------------------------------------|
+| `application.filter`    | `string` Graph filter to select the applications being monitored (Example : startswith(displayName,'PROD') |
+
 
 ## Permissions Required
 
