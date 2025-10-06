@@ -48,6 +48,12 @@ jobs:
         if: always()
         uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
 
+      - uses: chainguard-dev/malcontent-action@053384afe0bb069ba7e2996bd8c0863731406002 # v0.4
+        id: malcontent
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          fail-on-increase: false
+
       - name: Login to GitHub Container Registry
         if: github.ref == 'refs/heads/main'
         uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
