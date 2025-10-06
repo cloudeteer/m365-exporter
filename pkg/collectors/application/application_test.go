@@ -53,6 +53,6 @@ func TestCollector_ScrapeApplicationMetrics(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, allMetrics)
-	assert.Contains(t, allMetrics, "m365_client_secret_expiration_timestamp")
-	assert.Contains(t, allMetrics, "m365_client_secret_expired")
+	assert.Contains(t, allMetrics, "m365_application_client_secret_expiration_timestamp")
+	assert.Contains(t, allMetrics, "m365_application_client_secret_expired")
 }

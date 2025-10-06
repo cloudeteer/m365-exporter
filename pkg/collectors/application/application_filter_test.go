@@ -40,7 +40,7 @@ func TestCollector_ScrapeApplicationWithFilterMetrics(t *testing.T) {
 	httpClient.WithAzureCredential(azureCredential)
 
 	collectorWithFilter := application.NewCollector(logger, tenantID, msGraphClient, application.Settings{
-		Filter: "startswith(displayName,'A'))",
+		Filter: "signInAudience eq 'AzureADMyOrg'",
 	})
 
 	// TODO: Go 1.24: Change to t.Context()
@@ -53,6 +53,6 @@ func TestCollector_ScrapeApplicationWithFilterMetrics(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, allMetricsWithFilter)
-	assert.Contains(t, allMetricsWithFilter, "m365_client_secret_expiration_timestamp")
-	assert.Contains(t, allMetricsWithFilter, "m365_client_secret_expired")
+	assert.Contains(t, allMetricsWithFilter, "m365_application_client_secret_expiration_timestamp")
+	assert.Contains(t, allMetricsWithFilter, "m365_application_client_secret_expired")
 }
