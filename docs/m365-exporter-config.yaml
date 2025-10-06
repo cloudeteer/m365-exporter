@@ -27,3 +27,6 @@ entraid:
   enabled: true
 sharepoint:
   enabled: true
+application:
+  enabled: true
+  filter:

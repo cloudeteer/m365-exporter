@@ -40,6 +40,8 @@ const (
 	KeySharePointEnabled    = "sharepoint.enabled"
 	KeyTeamsEnabled         = "teams.enabled"
 	KeyODriveEnabled        = "onedrive.enabled"
+	KeyApplicationEnabled   = "application.enabled"
+	KeyApplicationFilter    = "application.filter"
 )
 
 // required in order to avoid global var.
@@ -72,6 +74,8 @@ func Configure(logger *slog.Logger) error {
 	v.SetDefault(KeySharePointEnabled, true)
 	v.SetDefault(KeyTeamsEnabled, true)
 	v.SetDefault(KeyODriveEnabled, true)
+	v.SetDefault(KeyApplicationEnabled, true)
+	v.SetDefault(KeyApplicationFilter, nil)
 
 	v.SetEnvPrefix(envPrefix)
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
