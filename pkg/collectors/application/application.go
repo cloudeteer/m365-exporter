@@ -67,6 +67,7 @@ func (c *Collector) Describe(ch chan<- *prometheus.Desc) {
 	c.BaseCollector.Describe(ch)
 
 	ch <- c.secretExpirationDesc
+
 	ch <- c.secretExpiredDesc
 }
 
@@ -113,7 +114,7 @@ func (c *Collector) iterateThroughApplications(ctx context.Context, iterator *gr
 			appID := *app.GetAppId()
 
 			passwordCreds := app.GetPasswordCredentials()
-			if passwordCreds == nil || len(passwordCreds) == 0 {
+			if len(passwordCreds) == 0 {
 				return true
 			}
 
@@ -122,16 +123,18 @@ func (c *Collector) iterateThroughApplications(ctx context.Context, iterator *gr
 					c.logger.Warn("password credential has no end date",
 						slog.String("appName", appName),
 						slog.String("appID", appID))
+
 					continue
 				}
 
 				endDate := *cred.GetEndDateTime()
 				keyID := ""
+
 				if cred.GetKeyId() != nil {
 					keyID = cred.GetKeyId().String()
 				}
 
-				secretName := ""
+				var secretName string
 				if cred.GetDisplayName() != nil {
 					secretName = *cred.GetDisplayName()
 				} else {
@@ -140,6 +143,7 @@ func (c *Collector) iterateThroughApplications(ctx context.Context, iterator *gr
 
 				expirationTimestamp := float64(endDate.Unix())
 				isExpired := float64(0)
+
 				if now.After(endDate) {
 					isExpired = float64(1)
 				}
