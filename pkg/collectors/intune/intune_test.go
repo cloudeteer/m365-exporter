@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"sync"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
@@ -19,23 +18,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var (
-	msGraphClientOnce sync.Once
-	msGraphClient     *msgraphsdk.GraphServiceClient
-	azureCredential   *azidentity.DefaultAzureCredential
-	msGraphClientErr  error
-)
-
 func getMSGraphClient(t *testing.T) (*msgraphsdk.GraphServiceClient, *azidentity.DefaultAzureCredential) {
-	msGraphClientOnce.Do(func() {
-		msGraphClient, azureCredential, msGraphClientErr = auth.NewMSGraphClient(http.DefaultClient)
-	})
-	require.NoError(t, msGraphClientErr)
+	httpClient := &http.Client{}
+	msGraphClient, azureCredential, err := auth.NewMSGraphClient(httpClient)
+	require.NoError(t, err)
 	return msGraphClient, azureCredential
 }
 
 func TestCollector_scrapeDevices(t *testing.T) {
-	t.Parallel()
 
 	var (
 		ok       bool
@@ -70,7 +60,6 @@ func TestCollector_scrapeDevices(t *testing.T) {
 }
 
 func TestCollector_scrapeVppTokens(t *testing.T) {
-	t.Parallel()
 
 	var (
 		ok       bool
@@ -108,7 +97,6 @@ func TestCollector_scrapeVppTokens(t *testing.T) {
 }
 
 func TestCollector_scrapeDepOnboardingSettings(t *testing.T) {
-	t.Parallel()
 
 	var (
 		ok       bool
@@ -145,7 +133,6 @@ func TestCollector_scrapeDepOnboardingSettings(t *testing.T) {
 }
 
 func TestCollector_scrapeApplePushNotificationCertificate(t *testing.T) {
-	t.Parallel()
 
 	var (
 		ok       bool
