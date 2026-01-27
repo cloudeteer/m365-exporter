@@ -87,7 +87,7 @@ func (c *Collector) ScrapeMetrics(ctx context.Context) ([]prometheus.Metric, err
 }
 
 func (c *Collector) scrapeUsers(ctx context.Context, userEnabled bool, userType string) ([]prometheus.Metric, error) {
-	metrics := make([]prometheus.Metric, 0)
+	metrics := make([]prometheus.Metric, 0, 1) // prealloc: always appends exactly 1 metric
 
 	filter := "accountEnabled eq " + cast.ToString(userEnabled) + " and userType eq '" + userType + "'"
 	query := users.CountRequestBuilderGetQueryParameters{

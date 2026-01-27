@@ -71,7 +71,8 @@ func (c *Collector) ScrapeMetrics(ctx context.Context) ([]prometheus.Metric, err
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	metrics := make([]prometheus.Metric, 0)
+	var metrics []prometheus.Metric //nolint:prealloc // capacity unknown, depends on API response
+
 	errs := make([]error, 0)
 
 	mailflowMetrics, err := c.scrapeMailflowMetrics(ctx)
