@@ -50,6 +50,7 @@ kos:
       org.opencontainers.image.description: "A Microsoft 365 exporter for Prometheus metrics"
     labels:
       org.opencontainers.image.source: "https://github.com/cloudeteer/m365-exporter"
+
 docker_signs:
   - artifacts: manifests
     output: true
@@ -58,7 +59,6 @@ docker_signs:
       - COSIGN_EXPERIMENTAL=1
     args:
       - sign
-      - '--oidc-issuer={{if index .Env "CI"}}https://token.actions.githubusercontent.com{{else}}https://oauth2.sigstore.dev/auth{{end}}'
       - '--yes'
       - '${artifact}'
 
