@@ -7,7 +7,7 @@ toolchain go1.25.6
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.21.0
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.13.1
-	github.com/microsoft/kiota-abstractions-go v1.9.3
+	github.com/microsoft/kiota-abstractions-go v1.9.4
 	github.com/microsoftgraph/msgraph-sdk-go v1.94.0
 	github.com/microsoftgraph/msgraph-sdk-go-core v1.4.0
 	github.com/prometheus/client_golang v1.23.2
