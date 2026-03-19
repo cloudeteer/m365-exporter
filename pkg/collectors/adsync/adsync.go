@@ -12,12 +12,16 @@ import (
 	"time"
 
 	"github.com/cloudeteer/m365-exporter/pkg/collectors/abstract"
+	"github.com/cloudeteer/m365-exporter/pkg/util"
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
 	"github.com/microsoftgraph/msgraph-sdk-go/organization"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-const subsystem = "adsync"
+const (
+	subsystem    = "adsync"
+	unknownValue = "unknown"
+)
 
 const (
 	URLServiceADSyncError      = "https://management.azure.com/providers/Microsoft.ADHybridHealthService/services/%s/exporterrors/counts?api-version=2014-01-01"
@@ -126,7 +130,7 @@ func (c *Collector) ScrapeMetrics(ctx context.Context) ([]prometheus.Metric, err
 
 	result, err := c.GraphClient().Organization().Get(ctx, &requestConfiguration)
 	if err != nil {
-		return nil, fmt.Errorf("error getting organizations: %w", err)
+		return nil, fmt.Errorf("error getting organizations: %w", util.GetOdataError(err))
 	}
 
 	for i, org := range result.GetValue() {
@@ -134,8 +138,15 @@ func (c *Collector) ScrapeMetrics(ctx context.Context) ([]prometheus.Metric, err
 			break
 		} // WARN: there can be multiple Sync status! Depending on how many <Organizations> tied to the tenant
 
+		// Get organization ID, use "unknown" if nil
+		orgID := unknownValue
+		if id := org.GetId(); id != nil {
+			orgID = *id
+		}
+
+		// Check if on-premises sync is enabled (treat nil as false)
 		azureAdSyncEnabledValue := 0
-		if *org.GetOnPremisesSyncEnabled() {
+		if syncEnabled := org.GetOnPremisesSyncEnabled(); syncEnabled != nil && *syncEnabled {
 			azureAdSyncEnabledValue = 1
 
 			errorMetrics, err = c.scrapeErrors(ctx)
@@ -148,15 +159,18 @@ func (c *Collector) ScrapeMetrics(ctx context.Context) ([]prometheus.Metric, err
 			c.enabledDesc,
 			prometheus.GaugeValue,
 			float64(azureAdSyncEnabledValue),
-			*org.GetId(),
+			orgID,
 		))
 
-		metrics = append(metrics, prometheus.MustNewConstMetric(
-			c.lastSyncDesc,
-			prometheus.GaugeValue,
-			float64(org.GetOnPremisesLastSyncDateTime().Unix()),
-			*org.GetId(),
-		))
+		// Only emit lastSync metric if the timestamp is available
+		if lastSync := org.GetOnPremisesLastSyncDateTime(); lastSync != nil {
+			metrics = append(metrics, prometheus.MustNewConstMetric(
+				c.lastSyncDesc,
+				prometheus.GaugeValue,
+				float64(lastSync.Unix()),
+				orgID,
+			))
+		}
 	}
 
 	return slices.Concat(metrics, errorMetrics), nil
