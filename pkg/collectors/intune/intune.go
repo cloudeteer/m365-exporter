@@ -8,6 +8,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"path"
 	"slices"
 	"strings"
 	"time"
@@ -34,6 +35,9 @@ const (
 
 	// URLDepOnboardingSettings DEP Onboarding Settings API URL
 	URLDepOnboardingSettings = "https://graph.microsoft.com/beta/deviceManagement/depOnboardingSettings"
+
+	// URLDeviceConfigurations Device Configuration Profiles API URL
+	URLDeviceConfigurations = "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations"
 )
 
 // Interface guard.
@@ -52,25 +56,74 @@ type depOnboardingSettingsResponse struct {
 	Value []depOnboardingSetting `json:"value"`
 }
 
+// Settings holds configuration for the Intune collector.
+type Settings struct {
+	PerProfileConfiguration       bool
+	PerProfileConfigurationFilter []string
+}
+
+type configurationProfile struct {
+	ID          string `json:"id"`
+	DisplayName string `json:"displayName"`
+}
+
+type configurationProfileListResponse struct {
+	Value    []configurationProfile `json:"value"`
+	NextLink string                 `json:"@odata.nextLink"`
+}
+
+type deviceConfigurationStatusOverview struct {
+	ID                   string `json:"id"`
+	SuccessCount         int    `json:"successCount"`
+	FailedCount          int    `json:"failedCount"`
+	ErrorCount           int    `json:"errorCount"`
+	PendingCount         int    `json:"pendingCount"`
+	NotApplicableCount   int    `json:"notApplicableCount"`
+	ConfigurationVersion int    `json:"configurationVersion"`
+	LastUpdateDateTime   string `json:"lastUpdateDateTime"`
+}
+
 type Collector struct {
 	abstract.BaseCollector
 
 	logger *slog.Logger
 
-	complianceDesc *prometheus.Desc
-	osDesc         *prometheus.Desc
-	vppStatusDesc  *prometheus.Desc
-	vppExpiryDesc  *prometheus.Desc
-	depExpiryDesc  *prometheus.Desc
-	apnExpiryDesc  *prometheus.Desc
+	complianceDesc              *prometheus.Desc
+	osDesc                      *prometheus.Desc
+	vppStatusDesc               *prometheus.Desc
+	vppExpiryDesc               *prometheus.Desc
+	depExpiryDesc               *prometheus.Desc
+	apnExpiryDesc               *prometheus.Desc
+	perProfileConfigurationDesc *prometheus.Desc
 
-	httpClient *http.Client
+	httpClient        *http.Client
+	perProfileEnabled bool
+	profileFilter     []string
 }
 
-func NewCollector(logger *slog.Logger, tenant string, msGraphClient *msgraphsdk.GraphServiceClient, httpClient *http.Client) *Collector {
+func NewCollector(
+	logger *slog.Logger,
+	tenant string,
+	msGraphClient *msgraphsdk.GraphServiceClient,
+	httpClient *http.Client,
+	settings Settings,
+) *Collector {
+	collectorLogger := logger.With(slog.String("collector", subsystem))
+
+	// Validate glob patterns at startup
+	for _, pattern := range settings.PerProfileConfigurationFilter {
+		_, err := path.Match(pattern, "test")
+		if err != nil {
+			collectorLogger.Warn("invalid glob pattern in perProfileConfigurationFilter, will be skipped during filtering",
+				slog.String("pattern", pattern),
+				slog.Any("err", err),
+			)
+		}
+	}
+
 	return &Collector{
 		BaseCollector: abstract.NewBaseCollector(msGraphClient, subsystem),
-		logger:        logger.With(slog.String("collector", subsystem)),
+		logger:        collectorLogger,
 
 		complianceDesc: prometheus.NewDesc(
 			prometheus.BuildFQName(abstract.Namespace, subsystem, "device_compliance"),
@@ -120,8 +173,18 @@ func NewCollector(logger *slog.Logger, tenant string, msGraphClient *msgraphsdk.
 				"tenant": tenant,
 			},
 		),
+		perProfileConfigurationDesc: prometheus.NewDesc(
+			prometheus.BuildFQName(abstract.Namespace, subsystem, "device_configuration_overview"),
+			"Per-profile device configuration status aggregate counts",
+			[]string{"profile_name", "status"},
+			prometheus.Labels{
+				"tenant": tenant,
+			},
+		),
 
-		httpClient: httpClient,
+		httpClient:        httpClient,
+		perProfileEnabled: settings.PerProfileConfiguration,
+		profileFilter:     toLowerSlice(settings.PerProfileConfigurationFilter),
 	}
 }
 
@@ -143,6 +206,10 @@ func (c *Collector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- c.depExpiryDesc
 
 	ch <- c.apnExpiryDesc
+
+	if c.perProfileEnabled {
+		ch <- c.perProfileConfigurationDesc
+	}
 }
 
 func (c *Collector) ScrapeMetrics(ctx context.Context) ([]prometheus.Metric, error) {
@@ -173,7 +240,16 @@ func (c *Collector) ScrapeMetrics(ctx context.Context) ([]prometheus.Metric, err
 		errs = append(errs, fmt.Errorf("error scraping apple push notification certificate metrics: %w", err))
 	}
 
-	return slices.Concat(complianceMetrics, osMetrics, vppMetrics, depMetrics, apnMetrics), errors.Join(errs...)
+	var perProfileMetrics []prometheus.Metric
+
+	if c.perProfileEnabled {
+		perProfileMetrics, err = c.scrapePerProfileConfiguration(ctx)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("error scraping per-profile configuration metrics: %w", err))
+		}
+	}
+
+	return slices.Concat(complianceMetrics, osMetrics, vppMetrics, depMetrics, apnMetrics, perProfileMetrics), errors.Join(errs...)
 }
 
 func (c *Collector) scrapeCompliance(ctx context.Context) ([]prometheus.Metric, error) {
@@ -380,37 +456,11 @@ func (c *Collector) scrapeVppTokens(ctx context.Context) ([]prometheus.Metric, e
 }
 
 func (c *Collector) scrapeDepOnboardingSettings(ctx context.Context) ([]prometheus.Metric, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, URLDepOnboardingSettings, nil)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("error sending request: %w", err)
-	}
-
-	defer func() {
-		err := resp.Body.Close()
-		if err != nil {
-			c.logger.ErrorContext(ctx, "error closing response body", slog.Any("err", err))
-		}
-	}()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("error reading response body: %w", err)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code %d: %s", resp.StatusCode, string(body))
-	}
-
 	var depResponse depOnboardingSettingsResponse
 
-	err = json.Unmarshal(body, &depResponse)
+	err := c.getJSON(ctx, URLDepOnboardingSettings, &depResponse)
 	if err != nil {
-		return nil, fmt.Errorf("error unmarshalling response: body %s, error %w", string(body), err)
+		return nil, fmt.Errorf("error fetching DEP onboarding settings: %w", err)
 	}
 
 	metrics := make([]prometheus.Metric, 0, len(depResponse.Value))
@@ -484,4 +534,185 @@ func (c *Collector) scrapeApplePushNotificationCertificate(ctx context.Context) 
 	metrics = append(metrics, metric)
 
 	return metrics, nil
+}
+
+func (c *Collector) getJSON(ctx context.Context, url string, target any) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return fmt.Errorf("error creating request: %w", err)
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("error sending request: %w", err)
+	}
+
+	defer func() {
+		err := resp.Body.Close()
+		if err != nil {
+			c.logger.ErrorContext(ctx, "error closing response body", slog.Any("err", err))
+		}
+	}()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("error reading response body: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected status code %d: %s", resp.StatusCode, string(body))
+	}
+
+	err = json.Unmarshal(body, target)
+	if err != nil {
+		return fmt.Errorf("error unmarshalling response: body %s, error %w", string(body), err)
+	}
+
+	return nil
+}
+
+func (c *Collector) fetchAllConfigurationProfiles(ctx context.Context) ([]configurationProfile, error) {
+	all := make([]configurationProfile, 0, 50)
+
+	url := URLDeviceConfigurations + "?$select=id,displayName"
+
+	for url != "" {
+		var resp configurationProfileListResponse
+
+		err := c.getJSON(ctx, url, &resp)
+		if err != nil {
+			return nil, fmt.Errorf("error fetching configuration profiles: %w", err)
+		}
+
+		all = append(all, resp.Value...)
+		url = resp.NextLink
+	}
+
+	return all, nil
+}
+
+func (c *Collector) fetchProfileStatusOverview(ctx context.Context, profileID string) (*deviceConfigurationStatusOverview, error) {
+	url := URLDeviceConfigurations + "/" + profileID + "/deviceStatusOverview"
+
+	var overview deviceConfigurationStatusOverview
+
+	err := c.getJSON(ctx, url, &overview)
+	if err != nil {
+		return nil, fmt.Errorf("error fetching status overview for profile %s: %w", profileID, err)
+	}
+
+	return &overview, nil
+}
+
+func (c *Collector) scrapePerProfileConfiguration(ctx context.Context) ([]prometheus.Metric, error) {
+	start := time.Now()
+
+	profiles, err := c.fetchAllConfigurationProfiles(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error fetching configuration profiles: %w", err)
+	}
+
+	// Pre-allocate for 5 metrics per profile (5 status types)
+	metrics := make([]prometheus.Metric, 0, len(profiles)*5)
+
+	for _, profile := range profiles {
+		profileName := profile.DisplayName
+
+		if profileName == "" {
+			profileName = unknownValue
+		}
+
+		if !c.matchesProfileFilter(profileName) {
+			continue
+		}
+
+		overview, err := c.fetchProfileStatusOverview(ctx, profile.ID)
+		if err != nil {
+			c.logger.ErrorContext(ctx, "error fetching status overview for profile, skipping",
+				slog.String("profile_name", profileName),
+				slog.String("profile_id", profile.ID),
+				slog.Any("err", err),
+			)
+
+			continue
+		}
+
+		// Emit one metric per status type with count value
+		metrics = append(metrics, prometheus.MustNewConstMetric(
+			c.perProfileConfigurationDesc,
+			prometheus.GaugeValue,
+			float64(overview.SuccessCount),
+			profileName, "success",
+		))
+		metrics = append(metrics, prometheus.MustNewConstMetric(
+			c.perProfileConfigurationDesc,
+			prometheus.GaugeValue,
+			float64(overview.FailedCount),
+			profileName, "failed",
+		))
+		metrics = append(metrics, prometheus.MustNewConstMetric(
+			c.perProfileConfigurationDesc,
+			prometheus.GaugeValue,
+			float64(overview.ErrorCount),
+			profileName, "error",
+		))
+		metrics = append(metrics, prometheus.MustNewConstMetric(
+			c.perProfileConfigurationDesc,
+			prometheus.GaugeValue,
+			float64(overview.PendingCount),
+			profileName, "pending",
+		))
+		metrics = append(metrics, prometheus.MustNewConstMetric(
+			c.perProfileConfigurationDesc,
+			prometheus.GaugeValue,
+			float64(overview.NotApplicableCount),
+			profileName, "notApplicable",
+		))
+	}
+
+	duration := time.Since(start)
+
+	c.logger.InfoContext(ctx, "scraped per-profile configuration metrics",
+		slog.Int("profiles", len(profiles)),
+		slog.Int("metrics", len(metrics)),
+		slog.Duration("duration", duration),
+	)
+
+	return metrics, nil
+}
+
+func (c *Collector) matchesProfileFilter(profileName string) bool {
+	if len(c.profileFilter) == 0 {
+		return true
+	}
+
+	lowerName := strings.ToLower(profileName)
+
+	for _, pattern := range c.profileFilter {
+		matched, err := path.Match(pattern, lowerName)
+		if err != nil {
+			c.logger.Warn("invalid glob pattern in profile filter, skipping",
+				slog.String("pattern", pattern),
+				slog.Any("err", err),
+			)
+
+			continue
+		}
+
+		if matched {
+			return true
+		}
+	}
+
+	return false
+}
+
+func toLowerSlice(ss []string) []string {
+	out := make([]string, len(ss))
+
+	for i, s := range ss {
+		out[i] = strings.ToLower(s)
+	}
+
+	return out
 }
