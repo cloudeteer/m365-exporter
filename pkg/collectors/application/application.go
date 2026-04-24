@@ -86,7 +86,7 @@ func (c *Collector) ScrapeMetrics(ctx context.Context) ([]prometheus.Metric, err
 		return nil, fmt.Errorf("failed to fetch application: %w", err)
 	}
 
-	appIterator, err := graphcore.NewPageIterator[*models.Application](
+	appIterator, err := graphcore.NewPageIterator[models.Applicationable](
 		appsRequest,
 		c.GraphClient().GetAdapter(),
 		models.CreateApplicationCollectionResponseFromDiscriminatorValue,
@@ -103,13 +103,17 @@ func (c *Collector) ScrapeMetrics(ctx context.Context) ([]prometheus.Metric, err
 	return metrics, nil
 }
 
-func (c *Collector) iterateThroughApplications(ctx context.Context, iterator *graphcore.PageIterator[*models.Application]) ([]prometheus.Metric, error) {
+func (c *Collector) iterateThroughApplications(ctx context.Context, iterator *graphcore.PageIterator[models.Applicationable]) ([]prometheus.Metric, error) {
 	metrics := make([]prometheus.Metric, 0, 100)
 	now := time.Now()
 
 	err := iterator.Iterate(
 		ctx,
-		func(app *models.Application) bool {
+		func(app models.Applicationable) bool {
+			if app.GetDisplayName() == nil || app.GetAppId() == nil {
+				return true
+			}
+
 			appName := *app.GetDisplayName()
 			appID := *app.GetAppId()
 
