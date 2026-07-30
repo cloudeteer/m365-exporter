@@ -20,9 +20,10 @@ import (
 )
 
 const (
-	subsystem    = "onedrive"
-	labelTenant  = "tenant"
-	labelDriveID = "driveID"
+	subsystem      = "onedrive"
+	labelTenant    = "tenant"
+	labelDriveID   = "driveID"
+	labelDriveType = "driveType"
 )
 
 // Interface guard.
@@ -53,7 +54,7 @@ func NewCollector(logger *slog.Logger, tenant string, msGraphClient *msgraphsdk.
 		totalDesc: prometheus.NewDesc(
 			prometheus.BuildFQName(abstract.Namespace, subsystem, "total_available_bytes"),
 			"the total amount of available bytes for this onedrive",
-			[]string{"owner", "driveType", labelDriveID},
+			[]string{"owner", labelDriveType, labelDriveID},
 			prometheus.Labels{
 				labelTenant: tenant,
 			},
@@ -61,7 +62,7 @@ func NewCollector(logger *slog.Logger, tenant string, msGraphClient *msgraphsdk.
 		usedOpts: prometheus.NewDesc(
 			prometheus.BuildFQName(abstract.Namespace, subsystem, "used_bytes"),
 			"number of bytes used on this onedrive",
-			[]string{"owner", "driveType", labelDriveID},
+			[]string{"owner", labelDriveType, labelDriveID},
 			prometheus.Labels{
 				labelTenant: tenant,
 			},
@@ -69,7 +70,7 @@ func NewCollector(logger *slog.Logger, tenant string, msGraphClient *msgraphsdk.
 		deletedOps: prometheus.NewDesc(
 			prometheus.BuildFQName(abstract.Namespace, subsystem, "deleted_bytes"),
 			"number of bytes in recycle bin",
-			[]string{"owner", "driveType", labelDriveID},
+			[]string{"owner", labelDriveType, labelDriveID},
 			prometheus.Labels{
 				labelTenant: tenant,
 			},
@@ -169,7 +170,7 @@ func (c *Collector) iterateThroughSites(ctx context.Context, sIterator *graphcor
 	err := sIterator.Iterate(ctx, func(site *models.Site) bool {
 		// get user onedrive
 		query := sites.ItemDriveRequestBuilderGetQueryParameters{
-			Select: []string{"quota", "driveType"},
+			Select: []string{"quota", labelDriveType},
 		}
 
 		config := sites.ItemDriveRequestBuilderGetRequestConfiguration{
@@ -230,7 +231,7 @@ func (c *Collector) iterateThroughUsers(ctx context.Context, uIterator *graphcor
 	err := uIterator.Iterate(ctx, func(user *models.User) bool {
 		// get user onedrive
 		query := users.ItemDriveRequestBuilderGetQueryParameters{
-			Select: []string{"quota", "driveType"},
+			Select: []string{"quota", labelDriveType},
 		}
 
 		config := users.ItemDriveRequestBuilderGetRequestConfiguration{
