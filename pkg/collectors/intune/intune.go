@@ -24,6 +24,8 @@ const (
 	subsystem             = "intune"
 	osIdentifierSeparator = "___"
 	unknownValue          = "unknown"
+	labelTenant           = "tenant"
+	labelAppleID          = "appleId"
 
 	// VPP Token Status Values
 	vppStatusUnknown               = 0.0
@@ -77,7 +79,7 @@ func NewCollector(logger *slog.Logger, tenant string, msGraphClient *msgraphsdk.
 			"Compliance of devices managed by Intune",
 			[]string{"type"},
 			prometheus.Labels{
-				"tenant": tenant,
+				labelTenant: tenant,
 			},
 		),
 		osDesc: prometheus.NewDesc(
@@ -85,39 +87,39 @@ func NewCollector(logger *slog.Logger, tenant string, msGraphClient *msgraphsdk.
 			"Device information of devices managed by Intune",
 			[]string{"os_name", "os_version"},
 			prometheus.Labels{
-				"tenant": tenant,
+				labelTenant: tenant,
 			},
 		),
 		vppStatusDesc: prometheus.NewDesc(
 			prometheus.BuildFQName(abstract.Namespace, subsystem, "vpp_status"),
 			"Status of Apple VPP tokens (0=unknown, 1=valid, 2=expired, 3=invalid, 4=assigned_to_external_mdm)",
-			[]string{"appleId", "organizationName", "id"},
+			[]string{labelAppleID, "organizationName", "id"},
 			prometheus.Labels{
-				"tenant": tenant,
+				labelTenant: tenant,
 			},
 		),
 		vppExpiryDesc: prometheus.NewDesc(
 			prometheus.BuildFQName(abstract.Namespace, subsystem, "vpp_expiry"),
 			"Expiration timestamp of Apple VPP tokens in Unix timestamp",
-			[]string{"appleId", "organizationName", "id"},
+			[]string{labelAppleID, "organizationName", "id"},
 			prometheus.Labels{
-				"tenant": tenant,
+				labelTenant: tenant,
 			},
 		),
 		depExpiryDesc: prometheus.NewDesc(
 			prometheus.BuildFQName(abstract.Namespace, subsystem, "dep_token_expiry"),
 			"Expiration timestamp of Apple DEP onboarding tokens in Unix timestamp",
-			[]string{"appleId", "id"},
+			[]string{labelAppleID, "id"},
 			prometheus.Labels{
-				"tenant": tenant,
+				labelTenant: tenant,
 			},
 		),
 		apnExpiryDesc: prometheus.NewDesc(
 			prometheus.BuildFQName(abstract.Namespace, subsystem, "apn_expiry"),
 			"Expiration timestamp of Apple Push Notification Certificate in Unix timestamp",
-			[]string{"appleId", "topicIdentifier", "id"},
+			[]string{labelAppleID, "topicIdentifier", "id"},
 			prometheus.Labels{
-				"tenant": tenant,
+				labelTenant: tenant,
 			},
 		),
 

@@ -15,7 +15,10 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-const subsystem = "license"
+const (
+	subsystem   = "license"
+	labelTenant = "tenant"
+)
 
 // Interface guard.
 var _ abstract.Collector = (*Collector)(nil)
@@ -49,7 +52,7 @@ func NewCollector(logger *slog.Logger, tenant string, msGraphClient *msgraphsdk.
 			"current amount of licenses",
 			[]string{subsystem},
 			prometheus.Labels{
-				"tenant": tenant,
+				labelTenant: tenant,
 			},
 		),
 		totalDesc: prometheus.NewDesc(
@@ -57,7 +60,7 @@ func NewCollector(logger *slog.Logger, tenant string, msGraphClient *msgraphsdk.
 			"total amount of licenses",
 			[]string{subsystem, "status"},
 			prometheus.Labels{
-				"tenant": tenant,
+				labelTenant: tenant,
 			},
 		),
 		statusDesc: prometheus.NewDesc(
@@ -65,7 +68,7 @@ func NewCollector(logger *slog.Logger, tenant string, msGraphClient *msgraphsdk.
 			"status of licenses",
 			[]string{subsystem},
 			prometheus.Labels{
-				"tenant": tenant,
+				labelTenant: tenant,
 			},
 		),
 		assignmentErrorDesc: prometheus.NewDesc(
@@ -73,7 +76,7 @@ func NewCollector(logger *slog.Logger, tenant string, msGraphClient *msgraphsdk.
 			"groups with assignment errors",
 			[]string{"group_name", "group_id", subsystem},
 			prometheus.Labels{
-				"tenant": tenant,
+				labelTenant: tenant,
 			},
 		),
 	}

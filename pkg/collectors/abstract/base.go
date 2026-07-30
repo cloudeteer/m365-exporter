@@ -13,7 +13,8 @@ import (
 )
 
 const (
-	Namespace = "m365"
+	Namespace      = "m365"
+	collectorLabel = "collector"
 )
 
 type BaseCollector struct {
@@ -35,29 +36,29 @@ func NewBaseCollector(msGraphClient *msgraphsdk.GraphServiceClient, collector st
 		subsystem:     collector,
 		lastUpdateTimestamp: prometheus.NewGauge(prometheus.GaugeOpts{
 			Namespace: Namespace,
-			Subsystem: "collector",
+			Subsystem: collectorLabel,
 			Name:      "last_update_seconds_timestamp",
 			Help:      "The timestamp of the last update of the metrics.",
 			ConstLabels: map[string]string{
-				"collector": collector,
+				collectorLabel: collector,
 			},
 		}),
 		scrapeDurationSeconds: prometheus.NewGauge(prometheus.GaugeOpts{
 			Namespace: Namespace,
-			Subsystem: "collector",
+			Subsystem: collectorLabel,
 			Name:      "scrape_duration_seconds",
 			Help:      "The duration of the last scrape.",
 			ConstLabels: map[string]string{
-				"collector": collector,
+				collectorLabel: collector,
 			},
 		}),
 		scrapeSuccess: prometheus.NewGauge(prometheus.GaugeOpts{
 			Namespace: Namespace,
-			Subsystem: "collector",
+			Subsystem: collectorLabel,
 			Name:      "scrape_success",
 			Help:      "Whether the scraper was successful.",
 			ConstLabels: map[string]string{
-				"collector": collector,
+				collectorLabel: collector,
 			},
 		}),
 		collectMu: &sync.RWMutex{},

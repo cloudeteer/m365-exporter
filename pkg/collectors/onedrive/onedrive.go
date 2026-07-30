@@ -19,7 +19,11 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-const subsystem = "onedrive"
+const (
+	subsystem    = "onedrive"
+	labelTenant  = "tenant"
+	labelDriveID = "driveID"
+)
 
 // Interface guard.
 var _ abstract.Collector = (*Collector)(nil)
@@ -49,25 +53,25 @@ func NewCollector(logger *slog.Logger, tenant string, msGraphClient *msgraphsdk.
 		totalDesc: prometheus.NewDesc(
 			prometheus.BuildFQName(abstract.Namespace, subsystem, "total_available_bytes"),
 			"the total amount of available bytes for this onedrive",
-			[]string{"owner", "driveType", "driveID"},
+			[]string{"owner", "driveType", labelDriveID},
 			prometheus.Labels{
-				"tenant": tenant,
+				labelTenant: tenant,
 			},
 		),
 		usedOpts: prometheus.NewDesc(
 			prometheus.BuildFQName(abstract.Namespace, subsystem, "used_bytes"),
 			"number of bytes used on this onedrive",
-			[]string{"owner", "driveType", "driveID"},
+			[]string{"owner", "driveType", labelDriveID},
 			prometheus.Labels{
-				"tenant": tenant,
+				labelTenant: tenant,
 			},
 		),
 		deletedOps: prometheus.NewDesc(
 			prometheus.BuildFQName(abstract.Namespace, subsystem, "deleted_bytes"),
 			"number of bytes in recycle bin",
-			[]string{"owner", "driveType", "driveID"},
+			[]string{"owner", "driveType", labelDriveID},
 			prometheus.Labels{
-				"tenant": tenant,
+				labelTenant: tenant,
 			},
 		),
 		settings: settings,
