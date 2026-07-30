@@ -17,7 +17,10 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-const subsystem = "adsync"
+const (
+	subsystem   = "adsync"
+	labelTenant = "tenant"
+)
 
 const (
 	URLServiceADSyncError      = "https://management.azure.com/providers/Microsoft.ADHybridHealthService/services/%s/exporterrors/counts?api-version=2014-01-01"
@@ -76,7 +79,7 @@ func NewCollector(logger *slog.Logger, tenant string, msGraphClient *msgraphsdk.
 			"status of azure ad connect synchronization",
 			[]string{"organization"},
 			prometheus.Labels{
-				"tenant": tenant,
+				labelTenant: tenant,
 			},
 		),
 		lastSyncDesc: prometheus.NewDesc(
@@ -84,7 +87,7 @@ func NewCollector(logger *slog.Logger, tenant string, msGraphClient *msgraphsdk.
 			"last Unix time of azure ad connect synchronization",
 			[]string{"organization"},
 			prometheus.Labels{
-				"tenant": tenant,
+				labelTenant: tenant,
 			},
 		),
 		errorDesc: prometheus.NewDesc(
@@ -92,7 +95,7 @@ func NewCollector(logger *slog.Logger, tenant string, msGraphClient *msgraphsdk.
 			"count of entra id connect synchronization errors",
 			[]string{"sync_service", "error_bucket"},
 			prometheus.Labels{
-				"tenant": tenant,
+				labelTenant: tenant,
 			},
 		),
 		httpClient: httpClient,

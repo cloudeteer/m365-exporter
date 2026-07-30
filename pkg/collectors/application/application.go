@@ -124,9 +124,9 @@ func (c *Collector) iterateThroughApplications(ctx context.Context, iterator *gr
 
 			for _, cred := range passwordCreds {
 				if cred.GetEndDateTime() == nil {
-					c.logger.Warn("password credential has no end date",
-						slog.String("appName", appName),
-						slog.String("appID", appID))
+					c.logger.WarnContext(ctx, "password credential has no end date",
+						slog.String("app_name", appName),
+						slog.String("app_id", appID))
 
 					continue
 				}
