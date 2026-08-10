@@ -2,7 +2,7 @@ module github.com/cloudeteer/m365-exporter
 
 go 1.25.0
 
-toolchain go1.25.6
+toolchain go1.26.5
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.22.0
