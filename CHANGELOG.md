@@ -13,7 +13,7 @@ All notable changes to this project will be documented in this file.
 ### Build and Release
 - Updated CI build job to run on `ubuntu-24.04-arm` and set `GOMAXPROCS=6` to improve build stability.
 - Updated GoReleaser GitHub Action to `v7.2.3` and GoReleaser binary version in CI snapshot builds to `v2.17.1`.
-- Updated release workflow actions for checkout, setup-go, cosign installer, and docker login.
+- Updated release workflow actions for checkout, setup-go, cosign installer, and Docker login.
 
 ### Dependencies and Toolchain
 - Updated Go version in `go.mod` from `1.24.0` to `1.25.0`.
