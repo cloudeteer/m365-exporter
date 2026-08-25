@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## v3.9.3
+
+## Fixes
+
+- [#103](https://github.com/cloudeteer/m365-exporter/issues/103) agent users are not requested from the agent API anymore
+
 ## v3.9.2
 
 ### Build and Release

@@ -9,8 +9,10 @@ import (
 	"slices"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/cloudeteer/m365-exporter/pkg/collectors/abstract"
 	"github.com/cloudeteer/m365-exporter/pkg/util"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
 	graphcore "github.com/microsoftgraph/msgraph-sdk-go-core"
 	"github.com/microsoftgraph/msgraph-sdk-go/models"
@@ -135,12 +137,20 @@ func (c *Collector) scrapeMetricsSites(ctx context.Context) ([]prometheus.Metric
 }
 
 func (c *Collector) scrapeMetricsUsers(ctx context.Context) ([]prometheus.Metric, error) {
+	// Exclude agent users (*models.AgentUser); requires ConsistencyLevel + $count.
+	filter := "not isof('microsoft.graph.agentUser')"
 	query := users.UsersRequestBuilderGetQueryParameters{
 		Select: []string{"id", "userPrincipalName"},
+		Filter: &filter,
+		Count:  to.Ptr(true),
 	}
+
+	headers := abstractions.NewRequestHeaders()
+	headers.Add("ConsistencyLevel", "eventual")
 
 	config := users.UsersRequestBuilderGetRequestConfiguration{
 		QueryParameters: &query,
+		Headers:         headers,
 	}
 
 	user, err := c.GraphClient().Users().Get(ctx, &config)
