@@ -17,7 +17,7 @@ jobs:
     name: Build & Test
     environment: build
     env:
-      GOMAXPROCS: 6 # do not crash runner
+      GOMAXPROCS: 2 # do not crash runner
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -87,7 +87,16 @@ jobs:
     name: super-lint
     runs-on: ubuntu-24.04
     permissions:
+      # contents permission to clone the repository
       contents: read
+      packages: read
+      # issues and pull-requests permissions to write results as pull
+      # request comments. Omit them if you don't need summary comments
+      issues: write
+      pull-requests: write
+      # To report GitHub Actions status checks. Omit if you don't need
+      # to update commit status
+      statuses: write
     steps:
       - name: Checkout Code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
