@@ -4,7 +4,10 @@ The intune collector collects metrics and status about managed devices.
 
 ## Configuration
 
-None
+| Key                                    | Type     | Default | Description                                                                 |
+|----------------------------------------|----------|---------|-----------------------------------------------------------------------------|
+| `intune.perProfileConfiguration`       | `bool`   | `false` | Enable per-device, per-profile configuration status metrics (opt-in due to high cardinality) |
+| `intune.perProfileConfigurationFilter` | `[]string` | `[]`  | Glob patterns to filter profiles by name (empty = all profiles). Case-insensitive, OR logic. |
 
 ## Metrics
 
@@ -16,6 +19,7 @@ None
 | `m365_intune_vpp_expiry`        | Expiration timestamp of Apple VPP tokens in Unix timestamp                                        | Gauge | `tenant`, `appleId`, `organizationName`, `id` |
 | `m365_intune_dep_token_expiry`  | Expiration timestamp of Apple DEP onboarding tokens in Unix timestamp                             | Gauge | `tenant`, `appleId`, `id`              |
 | `m365_intune_apn_expiry`        | Expiration timestamp of Apple Push Notification Certificate in Unix timestamp                      | Gauge | `tenant`, `appleId`, `topicIdentifier`, `id` |
+| `m365_intune_device_configuration_overview` | Per-profile device configuration status aggregate counts. Opt-in via `intune.perProfileConfiguration: true`. | Gauge | `tenant`, `profile_name`, `status` |
 
 ## Example metric
 
@@ -62,8 +66,42 @@ m365_intune_dep_token_expiry{appleId="example@company.appleid.com",id="0000000-0
 m365_intune_apn_expiry{appleId="example@company.appleid.com",topicIdentifier="com.apple.mgmt.External.example-uuid",id="0000000-0000-0000-0000-000000000000",tenant="0000000-0000-0000-0000-000000000000"} 1.782552802e+09
 ```
 
+### Per-profile configuration (opt-in)
+
+When `intune.perProfileConfiguration: true` is set:
+
+```
+# HELP m365_intune_device_configuration_overview Per-profile device configuration status aggregate counts
+# TYPE m365_intune_device_configuration_overview gauge
+m365_intune_device_configuration_overview{profile_name="Windows Configuration Profile",status="success",tenant="0000000-0000-0000-0000-000000000000"} 29
+m365_intune_device_configuration_overview{profile_name="Windows Configuration Profile",status="failed",tenant="0000000-0000-0000-0000-000000000000"} 0
+m365_intune_device_configuration_overview{profile_name="Windows Configuration Profile",status="error",tenant="0000000-0000-0000-0000-000000000000"} 0
+m365_intune_device_configuration_overview{profile_name="Windows Configuration Profile",status="pending",tenant="0000000-0000-0000-0000-000000000000"} 0
+m365_intune_device_configuration_overview{profile_name="Windows Configuration Profile",status="notApplicable",tenant="0000000-0000-0000-0000-000000000000"} 0
+```
+
 ## Useful queries
-__This collector does not yet have any useful queries added, we would appreciate your help adding them!__
+
+```promql
+# Failed device count per profile
+m365_intune_device_configuration_overview{status="failed"}
+
+# Total non-compliant devices across all profiles
+sum(m365_intune_device_configuration_overview{status=~"failed|error"})
+
+# Success rate per profile
+sum by (profile_name) (m365_intune_device_configuration_overview{status="success"})
+/
+sum by (profile_name) (m365_intune_device_configuration_overview{status!="notApplicable"})
+```
 
 ## Alerting examples
-__This collector does not yet have alerting examples, we would appreciate your help adding them!__
+
+```promql
+# Alert: any profile has failed devices
+m365_intune_device_configuration_overview{status="failed"} > 0
+
+# Alert: profile has >10% failure rate
+(m365_intune_device_configuration_overview{status="failed"} /
+ (m365_intune_device_configuration_overview{status="success"} + m365_intune_device_configuration_overview{status="failed"})) > 0.1
+```
