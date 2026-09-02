@@ -11,7 +11,9 @@ func GetOdataError(err error) error {
 	var odataError *odataerrors.ODataError
 	if errors.As(err, &odataError) {
 		if terr := odataError.GetErrorEscaped(); terr != nil {
-			return fmt.Errorf("%s: %s: %w", *terr.GetCode(), *terr.GetMessage(), err)
+			statusCode := odataError.GetStatusCode()
+
+			return fmt.Errorf("HTTP %d %s: %s: %w", statusCode, *terr.GetCode(), *terr.GetMessage(), err)
 		}
 	}
 
