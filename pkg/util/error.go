@@ -8,8 +8,7 @@ import (
 )
 
 func GetOdataError(err error) error {
-	var odataError *odataerrors.ODataError
-	if errors.As(err, &odataError) {
+	if odataError, ok := errors.AsType[*odataerrors.ODataError](err); ok {
 		if terr := odataError.GetErrorEscaped(); terr != nil {
 			return fmt.Errorf("%s: %s: %w", *terr.GetCode(), *terr.GetMessage(), err)
 		}
