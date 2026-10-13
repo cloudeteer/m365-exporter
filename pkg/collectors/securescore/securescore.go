@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/cloudeteer/m365-exporter/pkg/collectors/abstract"
 	"github.com/cloudeteer/m365-exporter/pkg/util"
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
@@ -70,7 +69,7 @@ func (c *Collector) ScrapeMetrics(ctx context.Context) ([]prometheus.Metric, err
 
 	cfg := &security.SecureScoresRequestBuilderGetRequestConfiguration{
 		QueryParameters: &security.SecureScoresRequestBuilderGetQueryParameters{
-			Top: to.Ptr(int32(1)),
+			Top: new(int32(1)),
 		},
 	}
 

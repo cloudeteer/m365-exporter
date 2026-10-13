@@ -9,7 +9,6 @@ import (
 	"slices"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/cloudeteer/m365-exporter/pkg/collectors/abstract"
 	"github.com/cloudeteer/m365-exporter/pkg/util"
 	abstractions "github.com/microsoft/kiota-abstractions-go"
@@ -142,7 +141,7 @@ func (c *Collector) scrapeMetricsUsers(ctx context.Context) ([]prometheus.Metric
 	query := users.UsersRequestBuilderGetQueryParameters{
 		Select: []string{"id", "userPrincipalName"},
 		Filter: &filter,
-		Count:  to.Ptr(true),
+		Count:  new(true),
 	}
 
 	headers := abstractions.NewRequestHeaders()

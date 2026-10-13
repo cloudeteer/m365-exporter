@@ -100,8 +100,7 @@ func Configure(logger *slog.Logger) error {
 
 	configErr := v.ReadInConfig()
 	if configErr != nil {
-		var configNotfoundError v.ConfigFileNotFoundError
-		if !errors.As(configErr, &configNotfoundError) {
+		if _, ok := errors.AsType[v.ConfigFileNotFoundError](configErr); !ok {
 			return fmt.Errorf("encountered a fatal error while reading the configuration in file %s: %w", v.ConfigFileUsed(), configErr)
 		}
 

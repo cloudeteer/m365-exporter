@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/cloudeteer/m365-exporter/pkg/collectors/abstract"
 	"github.com/cloudeteer/m365-exporter/pkg/util"
 	abstractions "github.com/microsoft/kiota-abstractions-go"
@@ -105,8 +104,8 @@ func (c *Collector) ScrapeMetrics(ctx context.Context) ([]prometheus.Metric, err
 	configuration := &graphgroups.GroupsRequestBuilderGetRequestConfiguration{
 		Headers: abstractions.NewRequestHeaders(),
 		QueryParameters: &graphgroups.GroupsRequestBuilderGetQueryParameters{
-			Count:  to.Ptr(false),
-			Filter: to.Ptr("hasMembersWithLicenseErrors eq true"),
+			Count:  new(false),
+			Filter: new("hasMembersWithLicenseErrors eq true"),
 			Select: []string{"id", "displayName", "assignedLicenses"},
 		},
 	}
