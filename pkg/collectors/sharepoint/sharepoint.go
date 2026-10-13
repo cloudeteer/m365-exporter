@@ -184,7 +184,7 @@ func (c *Collector) getSharepointMetrics(ctx context.Context, sharepoint string)
 		return sharepointResponse, fmt.Errorf("error creating request: %w", err)
 	}
 
-	req.Header.Set("odata-version", "4.0")
+	req.Header.Set("OData-Version", "4.0")
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := c.httpClient.Do(req)
