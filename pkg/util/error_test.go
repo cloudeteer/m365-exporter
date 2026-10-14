@@ -25,6 +25,6 @@ func Test_OdataErorr(t *testing.T) {
 		err.SetStatusCode(1337)
 
 		result := GetOdataError(err)
-		assert.ErrorContains(t, result, fmt.Sprintf("%s: %s", *err.GetErrorEscaped().GetCode(), *err.GetErrorEscaped().GetMessage()))
+		assert.ErrorContains(t, result, fmt.Sprintf("HTTP %d %s: %s", err.GetStatusCode(), *err.GetErrorEscaped().GetCode(), *err.GetErrorEscaped().GetMessage()))
 	})
 }
