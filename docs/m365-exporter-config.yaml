@@ -30,3 +30,53 @@ sharepoint:
 application:
   enabled: true
   filter:
+hunting:
+  enabled: false
+  interval: 1h
+  queries:
+    - metric: m365_hunting_device_patch
+      timespan: P1D
+      query: |-
+        DeviceInfo
+        | project DeviceId, OSPlatform, AssessmentStatus, PatchStatus, SecurityCount, CriticalCount
+      fields:
+        - name: DeviceId
+          target: device_id
+          type: id
+        - name: OSPlatform
+          target: os_platform
+          type: id
+        - name: AssessmentStatus
+          metric: m365_hunting_device_patch_status
+          type: value
+          labels:
+            kind: assessment
+          filters:
+            - type: regexp
+              regexp: "^Succeeded$"
+              replacement: "1"
+            - type: regexp
+              regexp: "^[A-Za-z]+$"
+              replacement: "-1"
+        - name: PatchStatus
+          metric: m365_hunting_device_patch_status
+          type: value
+          labels:
+            kind: patch
+          filters:
+            - type: regexp
+              regexp: "^Ready$"
+              replacement: "1"
+            - type: regexp
+              regexp: "^[A-Za-z]+$"
+              replacement: "-1"
+        - name: SecurityCount
+          metric: m365_hunting_device_patch_count
+          type: value
+          labels:
+            classification: security
+        - name: CriticalCount
+          metric: m365_hunting_device_patch_count
+          type: value
+          labels:
+            classification: critical
