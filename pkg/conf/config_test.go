@@ -42,3 +42,19 @@ func Test_ConfigReading(t *testing.T) {
 		assert.Equal(t, "8081", viper.Get(conf.KeySrvPort))
 	})
 }
+
+func TestHuntingDefaults(t *testing.T) {
+	viper.Reset()
+	t.Cleanup(viper.Reset)
+
+	t.Setenv("AZURE_TENANT_ID", "dummy")
+	t.Setenv("M365_CONFIGFILE", "./testdata/listen.yaml")
+	t.Setenv("M365_HUNTING_ENABLED", "true")
+
+	logger := slog.New(slog.NewJSONHandler(io.Discard, nil))
+
+	err := conf.Configure(logger)
+	require.NoError(t, err)
+	assert.True(t, viper.GetBool(conf.KeyHuntingEnabled))
+	assert.Equal(t, "1h", viper.GetString(conf.KeyHuntingInterval))
+}

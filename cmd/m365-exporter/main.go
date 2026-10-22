@@ -17,6 +17,7 @@ import (
 	"github.com/cloudeteer/m365-exporter/pkg/collectors/application"
 	"github.com/cloudeteer/m365-exporter/pkg/collectors/entraid"
 	"github.com/cloudeteer/m365-exporter/pkg/collectors/exchange"
+	"github.com/cloudeteer/m365-exporter/pkg/collectors/hunting"
 	"github.com/cloudeteer/m365-exporter/pkg/collectors/intune"
 	"github.com/cloudeteer/m365-exporter/pkg/collectors/license"
 	"github.com/cloudeteer/m365-exporter/pkg/collectors/onedrive"
@@ -169,6 +170,13 @@ func setupMetricsCollectors(
 	reg *prometheus.Registry, tenantID string,
 	msGraphClient *msgraphsdk.GraphServiceClient, httpClient *http.Client,
 ) error {
+	if v.GetBool(conf.KeyHuntingEnabled) {
+		err := registerHuntingCollector(ctx, logger, reg, tenantID, httpClient)
+		if err != nil {
+			return err
+		}
+	}
+
 	for _, val := range []struct {
 		collector abstract.Collector
 		interval  time.Duration
@@ -257,6 +265,35 @@ func setupMetricsCollectors(
 
 		val.collector.StartBackgroundWorker(ctx, val.interval)
 	}
+
+	return nil
+}
+
+func registerHuntingCollector(
+	ctx context.Context, logger *slog.Logger,
+	reg *prometheus.Registry, tenantID string, httpClient *http.Client,
+) error {
+	settings, err := hunting.LoadSettings()
+	if err != nil {
+		return fmt.Errorf("load hunting configuration: %w", err)
+	}
+
+	interval, err := hunting.ParseInterval(v.GetString(conf.KeyHuntingInterval))
+	if err != nil {
+		return fmt.Errorf("parse hunting interval: %w", err)
+	}
+
+	collector, err := hunting.NewCollector(logger, tenantID, httpClient, settings)
+	if err != nil {
+		return fmt.Errorf("create hunting collector: %w", err)
+	}
+
+	err = reg.Register(collector)
+	if err != nil {
+		return fmt.Errorf("failed to register hunting collector: %w", err)
+	}
+
+	collector.StartBackgroundWorker(ctx, interval)
 
 	return nil
 }

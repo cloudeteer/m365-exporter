@@ -44,6 +44,7 @@ The following collectors are implemented:
 | [servicehealth](docs/collector.servicehealth.md) | Service Health          |
 | [teams](docs/collector.teams.md)                 | Teams                   |
 | [sharepoint](docs/collector.sharepoint.md)       | Sharepoint              |
+| [hunting](docs/collector.hunting.md)             | Advanced hunting queries |
 
 ## Installation
 
@@ -75,6 +76,7 @@ The exporter requires the following permissions to be set in the Entra ID app re
 - ServiceHealth.Read.All
 - Sites.Read.All
 - TeamSettings.Read.All
+- ThreatHunting.Read.All
 - User.Read.All
 
 Keep in mind, after granting the permissions, the administrator must consent to them.
@@ -115,6 +117,8 @@ A fully fledged example config file can be found in the [docs folder](docs/m365-
 | `settings.serviceHealthIssueKeepDays`     | Setting how long an Incident or Advisory should be kept as resolved in the metrics.                  |
 | `onedrive.scrambleNames`                  | `bool` whether the label for individual onedrive metrics should have a scrambled version of the UPN  |
 | `onedrive.scrambleSalt`                   | Set the salt to scramble the UPNs, a default value is set, so UPN hashes are always salted           |
+| `hunting.enabled`                         | Enable configured advanced-hunting queries. Default is false. Requires `ThreatHunting.Read.All`.     |
+| `hunting.interval`                        | How often hunting queries run. A Go duration, such as `1h`. Default is `1h`.                         |
 
 Each collector can be disabled using this schema:
 
@@ -139,6 +143,8 @@ entraid:
   enabled: true
 sharepoint:
   enabled: true
+hunting:
+  enabled: false
 ```
 
 ### Via environment variables
