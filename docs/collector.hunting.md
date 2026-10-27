@@ -62,7 +62,7 @@ m365_hunting_device_vulnerability_count{device_id="9eaf3a8b5962e0e6b1af9ec756664
 m365_hunting_device_vulnerability_count{device_id="9eaf3a8b5962e0e6b1af9ec756664a9b823df2d1",device_name="laptop.contoso.com",os_platform="Windows 11",severity="high",tenant="contoso"} 4
 ```
 
-`m365_hunting_device_vulnerability` itself is absent, because that query has no value of its own. Configured metrics include the `tenant` label. The `m365_hunting_query_*` gauges only have the `query` label. High-cardinality columns, such as device ids, multiply the number of series by the number of rows.
+`m365_hunting_device_vulnerability` itself is absent, because that query has no value of its own. Configured metrics include the `tenant` label. The `m365_hunting_query_*` gauges only have the `query` label. High-cardinality columns, such as device IDs, multiply the number of series by the number of rows.
 
 ## Metrics
 
