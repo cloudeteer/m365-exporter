@@ -217,16 +217,6 @@ func TestPrepareRejects(t *testing.T) {
 			}},
 			want: "timeout",
 		},
-		{
-			name: "negative max rows",
-			queries: []hunting.Query{{
-				Metric:  "m365_hunting_devices",
-				Query:   "DeviceInfo",
-				Value:   floatPtr(1),
-				MaxRows: -1,
-			}},
-			want: "maxRows",
-		},
 	}
 
 	for _, tt := range tests {
@@ -265,7 +255,6 @@ func TestPrepareAcceptsSharedMetricName(t *testing.T) {
 	}}})
 	require.NoError(t, err)
 	require.Len(t, settings.Queries, 1)
-	assert.Equal(t, 1000, settings.Queries[0].MaxRowsResolved())
 	assert.Equal(t, hunting.DefaultTimeout, settings.Queries[0].TimeoutResolved())
 }
 

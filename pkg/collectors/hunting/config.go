@@ -22,7 +22,6 @@ const (
 
 	DefaultInterval = time.Hour
 	DefaultTimeout  = 2 * time.Minute
-	DefaultMaxRows  = 1000
 
 	nameQuerySuccess     = "query_success"
 	nameQueryResults     = "query_results"
@@ -55,10 +54,8 @@ type Query struct {
 	Labels       map[string]string `mapstructure:"labels"`
 	Fields       []Field           `mapstructure:"fields"`
 	DefaultField *Field            `mapstructure:"defaultField"`
-	MaxRows      int               `mapstructure:"maxRows"`
 	Timeout      string            `mapstructure:"timeout"`
 
-	maxRows int
 	timeout time.Duration
 }
 
@@ -79,15 +76,6 @@ type Filter struct {
 	Replacement string `mapstructure:"replacement"`
 
 	re *regexp.Regexp
-}
-
-// MaxRowsResolved returns the row limit, including the default.
-func (q Query) MaxRowsResolved() int {
-	if q.maxRows > 0 {
-		return q.maxRows
-	}
-
-	return DefaultMaxRows
 }
 
 // TimeoutResolved returns the per-query HTTP timeout, including the default.
@@ -164,7 +152,7 @@ func prepareQuery(query *Query, queryIndex int, owners map[string]int) error {
 		return err
 	}
 
-	err = prepareLimits(query)
+	err = prepareTimeout(query)
 	if err != nil {
 		return err
 	}
@@ -214,16 +202,7 @@ func validateQueryLabels(query *Query) error {
 	return nil
 }
 
-func prepareLimits(query *Query) error {
-	switch {
-	case query.MaxRows < 0:
-		return fmt.Errorf("query %q: maxRows must be positive", query.Metric)
-	case query.MaxRows == 0:
-		query.maxRows = DefaultMaxRows
-	default:
-		query.maxRows = query.MaxRows
-	}
-
+func prepareTimeout(query *Query) error {
 	if query.Timeout == "" {
 		query.timeout = DefaultTimeout
 

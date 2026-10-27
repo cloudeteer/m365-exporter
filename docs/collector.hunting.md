@@ -8,86 +8,61 @@ The app registration needs the application permission `ThreatHunting.Read.All`.
 
 ## Configuration
 
-Queries are a list. `hunting.interval` is how often they run (default `1h`). Each query can set `timeout` (default `2m`), `timespan`, `workspaceId`, and `maxRows` (default `1000`).
+Queries are a list. `hunting.interval` is how often they run (default `1h`). Each query can set `timeout` (default `2m`), `timespan`, and `workspaceId`.
 
-If `timespan` is omitted, Microsoft Graph looks back 30 days. Prefer a shorter `timespan`, and use `| take` in the query. When a response has more rows than `maxRows`, that query fails and the previous series stay in place.
+If `timespan` is omitted, Microsoft Graph looks back 30 days. Prefer a shorter `timespan`. Bound the result in the query itself, for example with `| take` or `summarize`. The collector reads the full response into memory. A large result can exhaust memory and stop the process, including the other collectors.
 
-Viper lowercases label keys. `kind` stays `kind`. `DeviceKind` becomes `devicekind`. Column `name` values are not lowercased and must match the JSON field exactly.
+`name` is the result column and must match it exactly, including capitalization. `target` is the Prometheus label for that column. `labels` add a fixed label to a field that sets its own `metric`.
 
 Filters are objects (`type`, and for `regexp` a `regexp` plus `replacement`). `toLower`, `toUpper`, `toUnixtime`, and `regexp` are supported. A numeric value used as a gauge does not pass through string filters. A string value does, and is then parsed as a number.
 
-`defaultField` can only be `ignore`, which is the default. Columns you do not list are dropped, so count and status columns must be listed. Several fields may publish the same metric name. Give them different `labels`, such as `kind`, to keep the series apart. `type: id` labels are copied onto every series from that row.
+`defaultField` can only be `ignore`, which is the default. Columns you do not list are dropped, so count and status columns must be listed. Several fields may publish the same metric name. Give them different `labels`, such as `severity`, to keep the series apart. `type: id` labels are copied onto every series from that row.
 
 ```yaml
 hunting:
   enabled: true
   interval: 1h
   queries:
-    - metric: m365_hunting_device_patch
-      timespan: P1D
+    - metric: m365_hunting_device_vulnerability
       timeout: 2m
       query: |-
-        DeviceInfo
-        | project DeviceId, OSPlatform, AssessmentStatus, PatchStatus, SecurityCount, CriticalCount
+        DeviceTvmSoftwareVulnerabilities
+        | summarize
+            CriticalCount = countif(VulnerabilitySeverityLevel == "Critical"),
+            HighCount = countif(VulnerabilitySeverityLevel == "High")
+          by DeviceId, DeviceName, OSPlatform
       fields:
         - name: DeviceId
           target: device_id
           type: id
+        - name: DeviceName
+          target: device_name
+          type: id
         - name: OSPlatform
           target: os_platform
           type: id
-        - name: AssessmentStatus
-          metric: m365_hunting_device_patch_status
-          type: value
-          labels:
-            kind: assessment
-          filters:
-            - type: regexp
-              regexp: "^Succeeded$"
-              replacement: "1"
-            - type: regexp
-              regexp: "^Failed$"
-              replacement: "3"
-            - type: regexp
-              regexp: "^[A-Za-z]+$"
-              replacement: "-1"
-        - name: PatchStatus
-          metric: m365_hunting_device_patch_status
-          type: value
-          labels:
-            kind: patch
-          filters:
-            - type: regexp
-              regexp: "^Ready$"
-              replacement: "1"
-            - type: regexp
-              regexp: "^Failed$"
-              replacement: "3"
-            - type: regexp
-              regexp: "^[A-Za-z]+$"
-              replacement: "-1"
-        - name: SecurityCount
-          metric: m365_hunting_device_patch_count
-          type: value
-          labels:
-            classification: security
         - name: CriticalCount
-          metric: m365_hunting_device_patch_count
+          metric: m365_hunting_device_vulnerability_count
           type: value
           labels:
-            classification: critical
+            severity: critical
+        - name: HighCount
+          metric: m365_hunting_device_vulnerability_count
+          type: value
+          labels:
+            severity: high
 ```
 
-One row with `AssessmentStatus` `Succeeded`, `PatchStatus` `Ready`, `SecurityCount` 4, and `CriticalCount` 2 becomes:
+`DeviceInfo` has no patch or vulnerability columns. `DeviceTvmSoftwareVulnerabilities` lists one row per CVE, so the query counts critical and high findings per device. `DeviceName` is that device's fully qualified domain name. Both counts publish `m365_hunting_device_vulnerability_count`. The `severity` label keeps the two series apart.
+
+One device with 2 critical and 4 high findings becomes:
 
 ```text
-m365_hunting_device_patch_status{device_id="dev-1",kind="assessment",os_platform="linux",tenant="contoso"} 1
-m365_hunting_device_patch_status{device_id="dev-1",kind="patch",os_platform="linux",tenant="contoso"} 1
-m365_hunting_device_patch_count{classification="security",device_id="dev-1",os_platform="linux",tenant="contoso"} 4
-m365_hunting_device_patch_count{classification="critical",device_id="dev-1",os_platform="linux",tenant="contoso"} 2
+m365_hunting_device_vulnerability_count{device_id="9eaf3a8b5962e0e6b1af9ec756664a9b823df2d1",device_name="laptop.contoso.com",os_platform="Windows 11",severity="critical",tenant="contoso"} 2
+m365_hunting_device_vulnerability_count{device_id="9eaf3a8b5962e0e6b1af9ec756664a9b823df2d1",device_name="laptop.contoso.com",os_platform="Windows 11",severity="high",tenant="contoso"} 4
 ```
 
-`m365_hunting_device_patch` itself is absent, because that query has no value of its own. Configured metrics include the `tenant` label. The `m365_hunting_query_*` gauges only have the `query` label. High-cardinality columns, such as device ids, multiply the number of series by the number of rows.
+`m365_hunting_device_vulnerability` itself is absent, because that query has no value of its own. Configured metrics include the `tenant` label. The `m365_hunting_query_*` gauges only have the `query` label. High-cardinality columns, such as device ids, multiply the number of series by the number of rows.
 
 ## Metrics
 

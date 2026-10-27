@@ -31,52 +31,33 @@ application:
   enabled: true
   filter:
 hunting:
-  enabled: false
+  enabled: true
   interval: 1h
   queries:
-    - metric: m365_hunting_device_patch
-      timespan: P1D
+    - metric: m365_hunting_device_vulnerability
       query: |-
-        DeviceInfo
-        | project DeviceId, OSPlatform, AssessmentStatus, PatchStatus, SecurityCount, CriticalCount
+        DeviceTvmSoftwareVulnerabilities
+        | summarize
+            CriticalCount = countif(VulnerabilitySeverityLevel == "Critical"),
+            HighCount = countif(VulnerabilitySeverityLevel == "High")
+          by DeviceId, DeviceName, OSPlatform
       fields:
         - name: DeviceId
           target: device_id
           type: id
+        - name: DeviceName
+          target: device_name
+          type: id
         - name: OSPlatform
           target: os_platform
           type: id
-        - name: AssessmentStatus
-          metric: m365_hunting_device_patch_status
-          type: value
-          labels:
-            kind: assessment
-          filters:
-            - type: regexp
-              regexp: "^Succeeded$"
-              replacement: "1"
-            - type: regexp
-              regexp: "^[A-Za-z]+$"
-              replacement: "-1"
-        - name: PatchStatus
-          metric: m365_hunting_device_patch_status
-          type: value
-          labels:
-            kind: patch
-          filters:
-            - type: regexp
-              regexp: "^Ready$"
-              replacement: "1"
-            - type: regexp
-              regexp: "^[A-Za-z]+$"
-              replacement: "-1"
-        - name: SecurityCount
-          metric: m365_hunting_device_patch_count
-          type: value
-          labels:
-            classification: security
         - name: CriticalCount
-          metric: m365_hunting_device_patch_count
+          metric: m365_hunting_device_vulnerability_count
           type: value
           labels:
-            classification: critical
+            severity: critical
+        - name: HighCount
+          metric: m365_hunting_device_vulnerability_count
+          type: value
+          labels:
+            severity: high

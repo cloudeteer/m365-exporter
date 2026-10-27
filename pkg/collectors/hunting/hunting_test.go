@@ -126,7 +126,7 @@ func TestScrapeKeepsSeriesWhenQueryFails(t *testing.T) {
 	}, 3*time.Second, 10*time.Millisecond)
 }
 
-func TestScrapeTimeoutAndTooManyRows(t *testing.T) {
+func TestScrapeTimeout(t *testing.T) {
 	t.Parallel()
 
 	blocked := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -159,26 +159,40 @@ func TestScrapeTimeoutAndTooManyRows(t *testing.T) {
 	require.NoError(t, err)
 	assert.Contains(t, text, `m365_hunting_query_success{query="m365_hunting_slow"} 0`)
 	assert.NotContains(t, text, "m365_hunting_slow{")
+}
 
-	rows := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		writeCountRows(w, 1, 2)
+func TestScrapeAcceptsAllRows(t *testing.T) {
+	t.Parallel()
+
+	const rows = 1001
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		values := make([]int, rows)
+		for i := range values {
+			values[i] = i + 1
+		}
+
+		writeCountRows(w, values...)
 	}))
-	t.Cleanup(rows.Close)
+	t.Cleanup(srv.Close)
 
-	limited := newTestCollector(t, rows.URL, hunting.Settings{Queries: []hunting.Query{{
-		Metric:  "m365_hunting_limited",
-		Query:   "DeviceInfo",
-		MaxRows: 1,
-		Fields:  []hunting.Field{{Name: "n", Type: "value"}},
+	collector := newTestCollector(t, srv.URL, hunting.Settings{Queries: []hunting.Query{{
+		Metric: "m365_hunting_rows",
+		Query:  "DeviceInfo",
+		Fields: []hunting.Field{
+			{Name: "id", Type: "id"},
+			{Name: "n", Type: "value"},
+		},
 	}}})
 
-	metrics, err = limited.ScrapeMetrics(context.Background())
+	metrics, err := collector.ScrapeMetrics(context.Background())
 	require.NoError(t, err)
 
-	text, err = testutil.MetricsToText(t, metrics)
+	text, err := testutil.MetricsToText(t, metrics)
 	require.NoError(t, err)
-	assert.Contains(t, text, `m365_hunting_query_success{query="m365_hunting_limited"} 0`)
-	assert.NotContains(t, text, "m365_hunting_limited{")
+	assert.Contains(t, text, `m365_hunting_query_success{query="m365_hunting_rows"} 1`)
+	assert.Contains(t, text, `m365_hunting_query_results{query="m365_hunting_rows"} 1001`)
+	assert.Contains(t, text, `m365_hunting_rows{id="a",tenant="contoso"} 1001`)
 }
 
 func TestScrapeMissingAndNullLabelsAreOneSeries(t *testing.T) {
@@ -213,12 +227,14 @@ func TestScrapeMissingAndNullLabelsAreOneSeries(t *testing.T) {
 	assert.NotContains(t, text, `m365_hunting_sparse{device_id="",tenant="contoso"} 1`)
 }
 
-func TestScrapeRejectsOversizedResponse(t *testing.T) {
+func TestScrapeAcceptsLargeResponse(t *testing.T) {
 	t.Parallel()
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		_, _ = io.WriteString(w, `{"schema":[],"results":[{"n":1}]}`)
+		_, _ = io.WriteString(w, `{"results":[{"n":1,"pad":"`)
+		_, _ = io.WriteString(w, strings.Repeat("a", (32<<20)+1))
+		_, _ = io.WriteString(w, `"}]}`)
 	}))
 	t.Cleanup(srv.Close)
 
@@ -227,15 +243,14 @@ func TestScrapeRejectsOversizedResponse(t *testing.T) {
 		Query:  "DeviceInfo",
 		Fields: []hunting.Field{{Name: "n", Type: "value"}},
 	}}})
-	collector.MaxResponseBytes = 8
 
 	metrics, err := collector.ScrapeMetrics(context.Background())
 	require.NoError(t, err)
 
 	text, err := testutil.MetricsToText(t, metrics)
 	require.NoError(t, err)
-	assert.Contains(t, text, `m365_hunting_query_success{query="m365_hunting_huge"} 0`)
-	assert.NotContains(t, text, "m365_hunting_huge{")
+	assert.Contains(t, text, `m365_hunting_query_success{query="m365_hunting_huge"} 1`)
+	assert.Contains(t, text, `m365_hunting_huge{tenant="contoso"} 1`)
 }
 
 func TestScrapeLastRowWins(t *testing.T) {
