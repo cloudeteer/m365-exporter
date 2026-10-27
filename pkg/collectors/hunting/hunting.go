@@ -18,10 +18,6 @@ import (
 
 const (
 	defaultEndpoint = "https://graph.microsoft.com/v1.0/security/runHuntingQuery"
-
-	// maxResponseBytes bounds a Graph response before JSON decode.
-	// maxRows is checked only after the body is decoded, which is too late to cap memory.
-	maxResponseBytes = 32 << 20
 )
 
 // Interface guard.
@@ -42,9 +38,6 @@ type Collector struct {
 
 	// Endpoint is the Graph runHuntingQuery URL. Tests replace it with an httptest server.
 	Endpoint string
-
-	// MaxResponseBytes caps the Graph response body. Tests set a smaller limit.
-	MaxResponseBytes int
 
 	descs        map[string]metricDesc
 	successDesc  *prometheus.Desc
@@ -79,15 +72,14 @@ func NewCollector(logger *slog.Logger, tenant string, httpClient *http.Client, s
 	}
 
 	collector := &Collector{
-		BaseCollector:    abstract.NewBaseCollector(nil, subsystem),
-		logger:           logger.With(slog.String("collector", subsystem)),
-		client:           httpClient,
-		settings:         prepared,
-		Endpoint:         defaultEndpoint,
-		MaxResponseBytes: maxResponseBytes,
-		descs:            map[string]metricDesc{},
-		series:           map[string][]prometheus.Metric{},
-		lastSuccess:      map[string]time.Time{},
+		BaseCollector: abstract.NewBaseCollector(nil, subsystem),
+		logger:        logger.With(slog.String("collector", subsystem)),
+		client:        httpClient,
+		settings:      prepared,
+		Endpoint:      defaultEndpoint,
+		descs:         map[string]metricDesc{},
+		series:        map[string][]prometheus.Metric{},
+		lastSuccess:   map[string]time.Time{},
 		successDesc: prometheus.NewDesc(
 			operationalName(nameQuerySuccess),
 			"1 if the last run of this hunting query succeeded.",
@@ -279,10 +271,6 @@ func (c *Collector) executeQuery(ctx context.Context, query Query) ([]prometheus
 		return nil, 0, err
 	}
 
-	if len(parsed.Results) > query.MaxRowsResolved() {
-		return nil, 0, fmt.Errorf("hunting query returned %d rows, maxRows is %d", len(parsed.Results), query.MaxRowsResolved())
-	}
-
 	c.warnMissingFields(ctx, query, parsed.Schema)
 
 	metrics, dropped, err := c.metricsFromRows(query, parsed.Results)
@@ -340,26 +328,12 @@ func (c *Collector) postQuery(ctx context.Context, query Query) (queryResponse, 
 		}
 	}()
 
-	limit := c.responseLimit()
-
-	respBody, err := io.ReadAll(io.LimitReader(resp.Body, int64(limit)+1))
+	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return queryResponse{}, resp.StatusCode, fmt.Errorf("read hunting response: %w", err)
 	}
 
-	if len(respBody) > limit {
-		return queryResponse{}, resp.StatusCode, fmt.Errorf("hunting response exceeds %d bytes", limit)
-	}
-
 	return queryResponse{payload: respBody, header: resp.Header}, resp.StatusCode, nil
-}
-
-func (c *Collector) responseLimit() int {
-	if c.MaxResponseBytes > 0 {
-		return c.MaxResponseBytes
-	}
-
-	return maxResponseBytes
 }
 
 func headerRetryAfter(resp queryResponse) string {
