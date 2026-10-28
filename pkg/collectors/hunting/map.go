@@ -131,7 +131,7 @@ func mapField(field Field, row map[string]any, idLabels map[string]string) (*Sam
 		return nil, 0, &value, true
 	}
 
-	text, ok := labelText(raw, field)
+	text, ok := formatText(raw, field)
 	if !ok {
 		return nil, 1, nil, false
 	}
@@ -149,7 +149,7 @@ func columnText(field Field, row map[string]any) (string, bool, bool) {
 		return "", false, false
 	}
 
-	text, ok := labelText(raw, field)
+	text, ok := formatText(raw, field)
 
 	return text, ok, false
 }
@@ -196,7 +196,7 @@ func metricValue(raw any, field Field) (float64, bool) {
 	return parsed, true
 }
 
-func labelText(raw any, field Field) (string, bool) {
+func formatText(raw any, field Field) (string, bool) {
 	text, ok := asString(raw)
 	if !ok {
 		return "", false
