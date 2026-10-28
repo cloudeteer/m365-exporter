@@ -10,7 +10,9 @@ import (
 func GetOdataError(err error) error {
 	if odataError, ok := errors.AsType[*odataerrors.ODataError](err); ok {
 		if terr := odataError.GetErrorEscaped(); terr != nil {
-			return fmt.Errorf("%s: %s: %w", *terr.GetCode(), *terr.GetMessage(), err)
+			statusCode := odataError.GetStatusCode()
+
+			return fmt.Errorf("HTTP %d %s: %s: %w", statusCode, *terr.GetCode(), *terr.GetMessage(), err)
 		}
 	}
 
