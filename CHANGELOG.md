@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## v3.9.4
+
+### Dependencies and Tooling
+
+- [#105](https://github.com/cloudeteer/m365-exporter/pull/105) update GitHub Actions
+- [#106](https://github.com/cloudeteer/m365-exporter/pull/106) update Go toolchain directive to v1.27.2
+- [#107](https://github.com/cloudeteer/m365-exporter/pull/107) update Azure SDK for Go
+- [#108](https://github.com/cloudeteer/m365-exporter/pull/108) update Kiota abstractions to v1.11.1
+- [#109](https://github.com/cloudeteer/m365-exporter/pull/109) update Microsoft Graph SDK to v1.104.0
+- [#110](https://github.com/cloudeteer/m365-exporter/pull/110) update Prometheus client to v1.25.0
+- [#111](https://github.com/cloudeteer/m365-exporter/pull/111) update testify to v1.12.1
+- [#112](https://github.com/cloudeteer/m365-exporter/pull/112) update super-linter to v9
+
 ## v3.9.3
 
 ## Fixes
