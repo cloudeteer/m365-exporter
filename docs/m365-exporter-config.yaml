@@ -23,6 +23,8 @@ servicehealth:
   enabled: true
 intune:
   enabled: true
+  perPolicyCompliance: false
+  perPolicyComplianceFilter: []
 entraid:
   enabled: true
 sharepoint:

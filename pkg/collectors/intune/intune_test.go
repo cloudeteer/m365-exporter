@@ -44,7 +44,7 @@ func TestCollector_scrapeDevices(t *testing.T) {
 	httpClient := httpclient.New(prometheus.NewRegistry())
 	httpClient.WithAzureCredential(azureCredential)
 
-	collector := NewCollector(logger, tenantID, msGraphClient, httpClient.GetHTTPClient())
+	collector := NewCollector(logger, tenantID, msGraphClient, httpClient.GetHTTPClient(), Settings{})
 
 	// TODO: Go 1.24: Change to t.Context()
 	metrics, err := collector.scrapeDevices(context.Background())
@@ -78,7 +78,7 @@ func TestCollector_scrapeVppTokens(t *testing.T) {
 	httpClient := httpclient.New(prometheus.NewRegistry())
 	httpClient.WithAzureCredential(azureCredential)
 
-	collector := NewCollector(logger, tenantID, msGraphClient, httpClient.GetHTTPClient())
+	collector := NewCollector(logger, tenantID, msGraphClient, httpClient.GetHTTPClient(), Settings{})
 
 	// TODO: Go 1.24: Change to t.Context()
 	metrics, err := collector.scrapeVppTokens(context.Background())
@@ -115,7 +115,7 @@ func TestCollector_scrapeDepOnboardingSettings(t *testing.T) {
 	httpClient := httpclient.New(prometheus.NewRegistry())
 	httpClient.WithAzureCredential(azureCredential)
 
-	collector := NewCollector(logger, tenantID, msGraphClient, httpClient.GetHTTPClient())
+	collector := NewCollector(logger, tenantID, msGraphClient, httpClient.GetHTTPClient(), Settings{})
 
 	// TODO: Go 1.24: Change to t.Context()
 	metrics, err := collector.scrapeDepOnboardingSettings(context.Background())
@@ -151,7 +151,7 @@ func TestCollector_scrapeApplePushNotificationCertificate(t *testing.T) {
 	httpClient := httpclient.New(prometheus.NewRegistry())
 	httpClient.WithAzureCredential(azureCredential)
 
-	collector := NewCollector(logger, tenantID, msGraphClient, httpClient.GetHTTPClient())
+	collector := NewCollector(logger, tenantID, msGraphClient, httpClient.GetHTTPClient(), Settings{})
 
 	// TODO: Go 1.24: Change to t.Context()
 	metrics, err := collector.scrapeApplePushNotificationCertificate(context.Background())
@@ -165,5 +165,42 @@ func TestCollector_scrapeApplePushNotificationCertificate(t *testing.T) {
 	// If Apple Push Notification Certificate exists, we should see the metrics
 	if len(metrics) > 0 {
 		assert.Contains(t, allMetrics, "m365_intune_apn_expiry")
+	}
+}
+
+func TestCollector_scrapePerProfileConfiguration(t *testing.T) {
+
+	var (
+		ok       bool
+		tenantID string
+	)
+
+	if tenantID, ok = os.LookupEnv("AZURE_TENANT_ID"); !ok {
+		t.Skip("no AZURE_TENANT_ID environment variable set")
+	}
+
+	// TODO: Go 1.24: Change to slog.NewDiscardHandler
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+
+	msGraphClient, azureCredential := getMSGraphClient(t)
+
+	httpClient := httpclient.New(prometheus.NewRegistry())
+	httpClient.WithAzureCredential(azureCredential)
+
+	collector := NewCollector(logger, tenantID, msGraphClient, httpClient.GetHTTPClient(), Settings{
+		PerProfileConfiguration: true,
+	})
+
+	// TODO: Go 1.24: Change to t.Context()
+	metrics, err := collector.scrapePerProfileConfiguration(context.Background())
+	require.NoError(t, err)
+
+	// Per-profile configuration metrics might be empty if no profiles exist
+	allMetrics, err := testutil.MetricsToText(t, metrics)
+	require.NoError(t, err)
+
+	// If configuration profiles exist, we should see the metrics
+	if len(metrics) > 0 {
+		assert.Contains(t, allMetrics, "m365_intune_device_configuration_overview")
 	}
 }

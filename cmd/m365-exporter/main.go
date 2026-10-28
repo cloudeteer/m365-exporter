@@ -200,9 +200,12 @@ func setupMetricsCollectors(
 			enabled:   v.GetBool(conf.KeyServiceHealthEnabled),
 		},
 		{
-			collector: intune.NewCollector(logger, tenantID, msGraphClient, httpClient),
-			interval:  3 * time.Hour,
-			enabled:   v.GetBool(conf.KeyIntuneEnabled),
+			collector: intune.NewCollector(logger, tenantID, msGraphClient, httpClient, intune.Settings{
+				PerProfileConfiguration:       v.GetBool(conf.KeyIntunePerProfileConfiguration),
+				PerProfileConfigurationFilter: v.GetStringSlice(conf.KeyIntunePerProfileConfigurationFilter),
+			}),
+			interval: 3 * time.Hour,
+			enabled:  v.GetBool(conf.KeyIntuneEnabled),
 		},
 		{
 			collector: onedrive.NewCollector(logger, tenantID, msGraphClient, onedrive.Settings{

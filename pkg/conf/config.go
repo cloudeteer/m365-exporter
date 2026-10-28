@@ -42,6 +42,9 @@ const (
 	KeyODriveEnabled        = "onedrive.enabled"
 	KeyApplicationEnabled   = "application.enabled"
 	KeyApplicationFilter    = "application.filter"
+
+	KeyIntunePerProfileConfiguration       = "intune.perProfileConfiguration"
+	KeyIntunePerProfileConfigurationFilter = "intune.perProfileConfigurationFilter"
 )
 
 // required in order to avoid global var.
@@ -76,6 +79,8 @@ func Configure(logger *slog.Logger) error {
 	v.SetDefault(KeyODriveEnabled, true)
 	v.SetDefault(KeyApplicationEnabled, true)
 	v.SetDefault(KeyApplicationFilter, nil)
+	v.SetDefault(KeyIntunePerProfileConfiguration, false)
+	v.SetDefault(KeyIntunePerProfileConfigurationFilter, nil)
 
 	v.SetEnvPrefix(envPrefix)
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
