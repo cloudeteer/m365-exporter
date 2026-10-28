@@ -30,3 +30,34 @@ sharepoint:
 application:
   enabled: true
   filter:
+hunting:
+  enabled: true
+  interval: 1h
+  queries:
+    - metric: m365_hunting_device_vulnerability
+      query: |-
+        DeviceTvmSoftwareVulnerabilities
+        | summarize
+            CriticalCount = countif(VulnerabilitySeverityLevel == "Critical"),
+            HighCount = countif(VulnerabilitySeverityLevel == "High")
+          by DeviceId, DeviceName, OSPlatform
+      fields:
+        - name: DeviceId
+          target: device_id
+          type: id
+        - name: DeviceName
+          target: device_name
+          type: id
+        - name: OSPlatform
+          target: os_platform
+          type: id
+        - name: CriticalCount
+          metric: m365_hunting_device_vulnerability_count
+          type: value
+          labels:
+            severity: critical
+        - name: HighCount
+          metric: m365_hunting_device_vulnerability_count
+          type: value
+          labels:
+            severity: high

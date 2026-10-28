@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## v3.10.0
+
+### Features
+
+- [#114](https://github.com/cloudeteer/m365-exporter/pull/114) add an optional hunting collector that publishes advanced hunting query results as Prometheus gauges
+
 ## v3.9.4
 
 ### Dependencies and Tooling

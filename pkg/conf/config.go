@@ -42,6 +42,8 @@ const (
 	KeyODriveEnabled        = "onedrive.enabled"
 	KeyApplicationEnabled   = "application.enabled"
 	KeyApplicationFilter    = "application.filter"
+	KeyHuntingEnabled       = "hunting.enabled"
+	KeyHuntingInterval      = "hunting.interval"
 )
 
 // required in order to avoid global var.
@@ -76,6 +78,8 @@ func Configure(logger *slog.Logger) error {
 	v.SetDefault(KeyODriveEnabled, true)
 	v.SetDefault(KeyApplicationEnabled, true)
 	v.SetDefault(KeyApplicationFilter, nil)
+	v.SetDefault(KeyHuntingEnabled, false)
+	v.SetDefault(KeyHuntingInterval, "1h")
 
 	v.SetEnvPrefix(envPrefix)
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
